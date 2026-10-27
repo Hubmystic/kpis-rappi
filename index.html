@@ -1,0 +1,1270 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>KPIs Rappi</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#F2F3EC; --surface:#FFFFFF; --ink:#23271C; --muted:#6A6F5E; --line:#DADDCF;
+  --olive:#56642F; --olive-soft:#DDE3C9; --tomato:#C23B22; --tomato-soft:#F6DDD6; --amber:#B7801A; --amber-soft:#F4E6C6;
+  --display:"Bricolage Grotesque", "Avenir Next", "Segoe UI", system-ui, sans-serif;
+  --body:"Instrument Sans", "Helvetica Neue", Arial, system-ui, sans-serif;
+  box-sizing:border-box; padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme:dark){ :root:not([data-theme="light"]){
+  --bg:#161911; --surface:#1F2318; --ink:#E6E9DA; --muted:#A1A690; --line:#353A2B;
+  --olive:#A9B96E; --olive-soft:#343D1F; --tomato:#EE7458; --tomato-soft:#4A2219; --amber:#E0AE4B; --amber-soft:#43341A; } }
+:root[data-theme="dark"]{
+  --bg:#161911; --surface:#1F2318; --ink:#E6E9DA; --muted:#A1A690; --line:#353A2B;
+  --olive:#A9B96E; --olive-soft:#343D1F; --tomato:#EE7458; --tomato-soft:#4A2219; --amber:#E0AE4B; --amber-soft:#43341A; }
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*,*::before,*::after{box-sizing:inherit}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.5;font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1180px;margin:0 auto;padding:28px 22px 64px}
+h1,h2,h3{font-family:var(--display);margin:0;letter-spacing:-.01em}
+h2{font-size:1.45rem;font-weight:600;margin-bottom:4px}
+h3{font-size:1.02rem;font-weight:600;margin-bottom:10px}
+p{margin:0}
+.muted{color:var(--muted)}
+.small{font-size:.84rem}
+button,select{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--olive);outline-offset:2px}
+
+/* top bar */
+.top{display:flex;flex-wrap:wrap;gap:12px 20px;align-items:center;justify-content:space-between;padding-bottom:18px;border-bottom:1px solid var(--line)}
+.brand{font-family:var(--display);font-weight:800;font-size:1.05rem}
+.brandwrap{display:flex;flex-wrap:wrap;align-items:center;gap:10px 18px}
+.tabs{display:inline-flex;max-width:100%;overflow-x:auto;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:3px}
+.tab{white-space:nowrap;flex:none;border:0;background:none;padding:7px 14px;border-radius:7px;cursor:pointer;font-family:var(--display);font-weight:600;font-size:.98rem;color:var(--muted)}
+.tab[aria-selected="true"]{background:var(--ink);color:var(--bg)}
+.tab small{font-family:var(--body);font-weight:500;font-size:.78rem;margin-left:6px;opacity:.75}
+.brand span{font-weight:400;color:var(--muted)}
+.filter{display:flex;gap:8px;align-items:center}
+.filter select{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 32px 8px 12px;min-width:220px;appearance:none;
+  background-image:linear-gradient(45deg,transparent 50%,var(--muted) 50%),linear-gradient(135deg,var(--muted) 50%,transparent 50%);
+  background-position:calc(100% - 17px) 55%,calc(100% - 12px) 55%;background-size:5px 5px;background-repeat:no-repeat}
+.clear{border:0;background:none;color:var(--olive);cursor:pointer;padding:6px;font-weight:600}
+
+/* hero */
+.hero{display:grid;grid-template-columns:1.35fr 1fr;gap:36px;padding:40px 0 34px;align-items:end}
+.hero h1{font-size:clamp(2rem,4.6vw,3.5rem);font-weight:800;line-height:1.02;letter-spacing:-.025em}
+.hero .lede{margin-top:16px;max-width:52ch;color:var(--muted);font-size:1.02rem}
+.gap{position:relative;padding-top:8px}
+.gap .scale{position:relative;height:56px;border-radius:6px;background:var(--olive-soft);overflow:hidden}
+.gap .fill{position:absolute;left:0;top:0;bottom:0;background:var(--tomato);transition:width .8s cubic-bezier(.2,.7,.2,1)}
+.gap .target{position:absolute;top:-6px;bottom:-6px;width:2px;background:var(--ink)}
+.gap .legend{position:relative;display:flex;justify-content:space-between;margin-top:10px;font-size:.84rem;color:var(--muted)}
+.gap .big{font-family:var(--display);font-size:clamp(3rem,7vw,5.2rem);font-weight:800;line-height:.9;color:var(--tomato);letter-spacing:-.03em}
+@media (prefers-reduced-motion:reduce){.gap .fill{transition:none}}
+
+/* kpis */
+.kpis{display:grid;grid-template-columns:repeat(5,1fr);border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.kpi{padding:18px 18px 18px 0}
+.kpi+.kpi{padding-left:18px;border-left:1px solid var(--line)}
+.kpi .v{font-family:var(--display);font-size:2rem;font-weight:600;line-height:1.1}
+.kpi .l{font-weight:600}
+.kpi .t{font-size:.84rem;color:var(--muted)}
+.bad{color:var(--tomato)} .good{color:var(--olive)} .warn{color:var(--amber)}
+
+section{padding-top:48px}
+.head{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:baseline;gap:6px 20px;margin-bottom:18px}
+.head p{max-width:70ch}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.grid3{display:grid;grid-template-columns:1.3fr 1fr 1fr;gap:20px}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:18px}
+
+/* table */
+.tscroll{overflow-x:auto;background:var(--surface);border:1px solid var(--line);border-radius:10px}
+table{border-collapse:collapse;width:100%;min-width:760px}
+th,td{padding:9px 12px;text-align:right;border-bottom:1px solid var(--line);white-space:nowrap}
+th:first-child,td:first-child{text-align:left}
+thead th{font-weight:600;font-size:.84rem;color:var(--muted);position:sticky;top:0;background:var(--surface);cursor:pointer;user-select:none}
+thead th[aria-sort="descending"]::after{content:" ↓"} thead th[aria-sort="ascending"]::after{content:" ↑"}
+tbody tr{cursor:pointer}
+tbody tr:hover{background:var(--bg)}
+tbody tr.sel{background:var(--olive-soft)}
+tbody tr:last-child td{border-bottom:0}
+.cellbar{display:inline-flex;align-items:center;gap:8px;justify-content:flex-end}
+.cellbar i{display:inline-block;height:8px;border-radius:2px;background:var(--tomato);opacity:.85}
+.pill{display:inline-block;padding:1px 8px;border-radius:99px;font-size:.8rem;font-weight:600}
+.pill.bad{background:var(--tomato-soft)} .pill.good{background:var(--olive-soft)} .pill.warn{background:var(--amber-soft)}
+
+/* bars */
+.bars{display:flex;flex-direction:column;gap:9px}
+.bar{display:grid;grid-template-columns:minmax(110px,42%) 1fr 5.2em;gap:10px;align-items:center;font-size:.9rem}
+.wide .bar{grid-template-columns:minmax(140px,55%) 1fr 2.5em}
+.bar .track{height:12px;background:var(--bg);border-radius:3px;position:relative}
+.bar .track b{position:absolute;left:0;top:0;bottom:0;border-radius:3px;background:var(--olive)}
+.bar .track b.t{background:var(--tomato)}
+.bar .track b.a{background:var(--amber)}
+.bar .n{min-width:3ch;text-align:right;font-weight:600}
+.lbl{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+/* weekly */
+.week{display:grid;grid-template-columns:repeat(7,1fr);gap:8px;align-items:end;height:190px;position:relative;margin-top:8px;padding-left:34px}
+.week .col{display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;gap:6px;position:relative;z-index:1}
+.week .col b{width:100%;max-width:46px;border-radius:4px 4px 0 0;background:var(--tomato);display:block}
+.week .col span{font-size:.8rem;color:var(--muted);height:20px;line-height:20px}
+.week .col em{font-style:normal;font-size:.82rem;font-weight:600}
+.week .tl{position:absolute;left:0;right:0;border-top:2px dashed var(--ink);opacity:.55}
+.week .tl{z-index:2}.week .tl::after{content:attr(data-l);position:absolute;left:0;top:-10px;font-size:.78rem;color:var(--muted);background:var(--surface);padding-right:4px}
+
+/* prep stack */
+.stack{display:grid;grid-template-columns:minmax(120px,32%) 1fr auto;gap:10px;align-items:center;font-size:.9rem}
+.stack .track{display:flex;height:14px;border-radius:3px;overflow:hidden;background:var(--bg)}
+.stack .e{background:var(--olive)} .stack .w{background:var(--tomato)}
+.key{display:flex;gap:16px;font-size:.84rem;color:var(--muted);margin-bottom:12px;flex-wrap:wrap}
+.key i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:6px;vertical-align:-1px}
+
+/* claims list */
+.claims{display:flex;flex-direction:column;max-height:520px;overflow:auto}
+.claim{padding:12px 0;border-bottom:1px solid var(--line);display:grid;grid-template-columns:1fr auto;gap:4px 16px}
+.claim:last-child{border-bottom:0}
+.claim q{quotes:none;grid-column:1/-1;font-size:.95rem}
+.claim .m{font-size:.82rem;color:var(--muted)}
+.claim .c{font-size:.82rem;text-align:right;white-space:nowrap}
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+.chip{border:1px solid var(--line);background:var(--surface);border-radius:99px;padding:4px 12px;font-size:.84rem;cursor:pointer}
+.chip[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.money{font-family:var(--display);font-size:1.6rem;font-weight:600;line-height:1.15}
+
+.events{display:flex;flex-direction:column;max-height:360px;overflow:auto;font-size:.88rem}
+.ev{display:grid;grid-template-columns:88px 1fr auto;gap:10px;padding:7px 0;border-bottom:1px solid var(--line)}
+.ev:last-child{border-bottom:0}
+.empty{color:var(--muted);padding:14px 0}
+footer{margin-top:56px;padding-top:16px;border-top:1px solid var(--line);font-size:.82rem;color:var(--muted)}
+
+@media (max-width:900px){
+  .hero,.grid2,.grid3{grid-template-columns:1fr}
+  .kpis{grid-template-columns:1fr 1fr}
+  .kpi:nth-child(odd){border-left:0;padding-left:0}
+  .kpi:nth-child(even){padding-left:18px;border-left:1px solid var(--line)}
+  .kpi:nth-child(n+3){border-top:1px solid var(--line)}
+}
+@media (max-width:480px){ .wrap{padding:20px 16px 48px} .filter select{min-width:0;width:100%} .filter{width:100%} }
+:root{--b0:#56642F;--b1:#C23B22;--b2:#B7801A;--b3:#3F6B7E;--b4:#7B4A74}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--b0:#A9B96E;--b1:#EE7458;--b2:#E0AE4B;--b3:#7FB2C7;--b4:#C391BB}}
+:root[data-theme="dark"]{--b0:#A9B96E;--b1:#EE7458;--b2:#E0AE4B;--b3:#7FB2C7;--b4:#C391BB}
+.bar{cursor:default}
+.bar.click,.stack.click,.ev.click{cursor:pointer}
+.bar.click:hover .lbl,.stack.click:hover .lbl{text-decoration:underline}
+.bar.on .lbl{font-weight:700}
+.bar.dim{opacity:.4}
+/* sticky control bar */
+.controls{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:var(--bg);padding:12px 0 10px;border-bottom:1px solid var(--line);display:flex;flex-direction:column;gap:10px}
+.crow{display:flex;flex-wrap:wrap;gap:10px 14px;align-items:center}
+.days{display:inline-flex;gap:4px;flex-wrap:wrap}
+.day{border:1px solid var(--line);background:var(--surface);border-radius:7px;padding:4px 10px;font-size:.84rem;cursor:pointer;line-height:1.25;text-align:center}
+.day small{display:block;font-size:.72rem;color:var(--muted)}
+.day[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.day[aria-pressed="true"] small{color:inherit;opacity:.75}
+.active{display:flex;flex-wrap:wrap;gap:6px;align-items:center;min-height:0}
+.af{display:inline-flex;align-items:center;gap:6px;background:var(--olive-soft);border-radius:99px;padding:3px 4px 3px 11px;font-size:.84rem}
+.af button{border:0;background:var(--surface);width:20px;height:20px;border-radius:50%;cursor:pointer;line-height:1;font-size:.9rem;color:var(--muted)}
+.resetall{border:0;background:none;color:var(--tomato);cursor:pointer;font-size:.84rem;font-weight:600}
+.note{font-size:.8rem;color:var(--muted)}
+/* scatter */
+.scatter{position:relative}
+.scatter svg{display:block;width:100%;height:auto;overflow:visible}
+.scatter circle{cursor:pointer;stroke:var(--surface);stroke-width:1.5;transition:opacity .15s}
+.scatter circle:hover{stroke:var(--ink);stroke-width:2}
+.scatter .axis{stroke:var(--line)}
+.scatter text{fill:var(--muted);font-size:11px;font-family:var(--body)}
+.legendb{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:.84rem;margin-top:8px}
+.legendb button{border:0;background:none;padding:2px 0;cursor:pointer;display:inline-flex;align-items:center;gap:6px}
+.legendb i{width:10px;height:10px;border-radius:50%;display:inline-block}
+.legendb button[aria-pressed="false"]{opacity:.4}
+/* date chart */
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden;margin-bottom:12px;flex-wrap:wrap}
+.seg button{border:0;background:var(--surface);padding:5px 11px;font-size:.82rem;cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
+.dchart{display:grid;gap:8px;align-items:end;height:200px;position:relative;padding-left:34px}
+.dchart .col{display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;gap:6px;position:relative;z-index:1;border:0;background:none;padding:0;font:inherit;color:inherit}
+.dchart button.col{cursor:pointer}
+.dchart .col b{width:100%;max-width:46px;border-radius:4px 4px 0 0;background:var(--tomato);display:block;transition:opacity .15s}
+.dchart .col.dim b{opacity:.3}
+.dchart .col span{font-size:.78rem;color:var(--muted);height:30px;line-height:15px;text-align:center}
+.dchart .col em{font-style:normal;font-size:.8rem;font-weight:600}
+.dchart .tl{position:absolute;left:0;right:0;border-top:2px dashed var(--ink);opacity:.55;z-index:2}
+.dchart .tl::after{content:attr(data-l);position:absolute;left:0;top:-10px;font-size:.76rem;color:var(--muted);background:var(--surface);padding-right:4px}
+.dchart .stackb{display:flex;flex-direction:column-reverse;width:100%;max-width:46px}
+.dchart .stackb b{border-radius:0;max-width:none}
+.dchart .stackb b:last-child{border-radius:4px 4px 0 0}
+/* tooltip */
+#tip{position:fixed;z-index:50;pointer-events:none;background:var(--ink);color:var(--bg);padding:8px 10px;border-radius:7px;font-size:.82rem;line-height:1.35;max-width:260px;opacity:0;transition:opacity .1s}
+#tip.show{opacity:1}
+#tip b{font-weight:600}
+.search{border:1px solid var(--line);background:var(--bg);border-radius:8px;padding:6px 10px;min-width:200px;flex:1;max-width:320px}
+.brandcol{display:inline-flex;align-items:center;gap:6px}
+.brandcol i{width:8px;height:8px;border-radius:50%;display:inline-block;flex:none}
+tbody tr.dim{opacity:.35}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+
+@media (max-width:700px){.controls{position:static}.days{flex-wrap:nowrap;overflow-x:auto;max-width:100%}.day{flex:none}.dchart{gap:4px}.dchart .col span{font-size:.72rem}}
+thead th{z-index:1}
+#scatter{overflow-x:auto}
+#scatter svg{min-width:620px}
+
+/* ---------- typography ---------- */
+:root{
+  --display:"Hanken Grotesk", "Helvetica Neue", "Segoe UI", system-ui, sans-serif;
+  --body:"Hanken Grotesk", "Helvetica Neue", "Segoe UI", system-ui, sans-serif;
+  --fs-xs:.75rem; --fs-s:.8125rem; --fs-m:.9375rem; --fs-l:1.0625rem;
+}
+body{font-size:15.5px;line-height:1.55;font-feature-settings:"lnum","tnum";letter-spacing:.002em;text-rendering:optimizeLegibility}
+h1,h2{font-family:var(--display);font-weight:500;letter-spacing:-.012em;text-wrap:balance;font-optical-sizing:auto}
+p,.lede,q{text-wrap:pretty}
+.hero h1{font-size:clamp(2.1rem,4.2vw,3.35rem);line-height:1.06;font-weight:500;letter-spacing:-.022em}
+.hero .lede{font-size:var(--fs-l);line-height:1.6;max-width:50ch;margin-top:18px}
+#heroKicker{font-size:var(--fs-s);font-weight:500;letter-spacing:.01em}
+h2{font-size:clamp(1.55rem,2.4vw,1.9rem);line-height:1.15;margin-bottom:6px}
+.head p{font-size:var(--fs-m);line-height:1.55}
+h3{font-family:var(--body);font-size:var(--fs-m);font-weight:600;letter-spacing:0;line-height:1.35}
+.gap .big{font-family:var(--body);font-weight:700;letter-spacing:-.045em;font-size:clamp(3.2rem,7vw,5.4rem);line-height:.92}
+.kpi .l{font-size:var(--fs-s);font-weight:600;color:var(--muted)}
+.kpi .v{font-family:var(--body);font-weight:600;font-size:clamp(1.7rem,2.6vw,2.1rem);letter-spacing:-.03em;line-height:1.15;margin:2px 0 1px}
+.kpi .t{font-size:var(--fs-xs);line-height:1.45}
+.money{font-family:var(--body);font-weight:600;letter-spacing:-.025em;font-size:1.65rem}
+.tab{font-family:var(--body);font-weight:600;font-size:var(--fs-m);letter-spacing:-.005em}
+.tab small{font-weight:500;font-size:var(--fs-xs)}
+.day{font-weight:600;font-size:var(--fs-s)}
+.day small{font-weight:500;letter-spacing:.01em}
+thead th{font-size:var(--fs-xs);font-weight:600;letter-spacing:.01em}
+td{font-size:var(--fs-m)}
+.pill{font-size:var(--fs-xs);font-weight:600;letter-spacing:.005em}
+.bar,.stack{font-size:.875rem}
+.bar .n{font-weight:600}
+.claim q{font-family:var(--display);font-size:1.06rem;line-height:1.45;font-weight:400}
+.claim .m,.claim .c{font-size:var(--fs-xs)}
+.small,.note,.legend,.key{font-size:var(--fs-s)}
+.dchart .col em{font-weight:600;font-size:var(--fs-s)}
+.scatter text{font-family:var(--body);font-size:11.5px}
+.af{font-size:var(--fs-s);font-weight:500}
+.chip,.seg button{font-weight:500}
+footer{font-size:var(--fs-xs)}
+
+/* single-family refinements */
+h1,h2{font-weight:600}
+.hero h1{font-weight:600;letter-spacing:-.035em;line-height:1.04;font-size:clamp(2rem,4vw,3.15rem)}
+h2{letter-spacing:-.025em;font-size:clamp(1.4rem,2.2vw,1.7rem)}
+.claim q{font-family:var(--body);font-size:.98rem;line-height:1.5;font-weight:500;color:var(--ink)}
+
+tbody tr.dim{opacity:.4}
+dialog{border:1px solid var(--line);border-radius:12px;background:var(--surface);color:var(--ink);padding:22px 22px 0;width:min(560px,calc(100vw - 32px));max-height:85vh;overflow:auto}
+dialog::backdrop{background:rgba(20,22,15,.45)}
+.crow2{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:6px 0;border-bottom:1px solid var(--line);font-size:.92rem}
+.crow2 select{background:var(--bg);border:1px solid var(--line);border-radius:7px;padding:5px 8px;font:inherit;color:inherit}
+.dlgbar{position:sticky;bottom:0;background:var(--surface);display:flex;gap:10px;align-items:center;padding:14px 0 18px;margin-top:10px;border-top:1px solid var(--line)}
+.btn{border:0;background:var(--ink);color:var(--bg);border-radius:8px;padding:8px 14px;font-weight:600;cursor:pointer}
+.btn2{border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:8px 14px;cursor:pointer}
+.head .clear{align-self:flex-end}
+
+.weeks{margin:0}.weeks button{font-weight:600}.weeks small{font-weight:500;opacity:.7;font-size:.72rem;margin-left:4px}
+.tab.miss{opacity:.55}
+.missnote{background:var(--amber-soft);border-radius:8px;padding:8px 12px;font-size:.84rem}
+.dl{font-weight:600;font-size:.82rem;white-space:nowrap}
+.ch2{display:block;width:100%;height:auto;overflow:visible}.ch2 text{fill:var(--muted);font-size:11.5px;font-family:var(--body)}.ch2 .axis{stroke:var(--line)}
+.twocol{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.twocol h4{margin:6px 0 6px;font-size:.74rem;letter-spacing:.06em;text-transform:uppercase}
+.mv{display:grid;grid-template-columns:1fr auto;gap:2px 8px;padding:8px 0;border-bottom:1px solid var(--line);cursor:pointer;font-size:.9rem}
+.mv:hover span:first-child{text-decoration:underline}
+.mv .dl{grid-column:2;grid-row:1}
+.mv>span:nth-child(2){grid-column:1}
+@media (max-width:700px){.twocol{grid-template-columns:1fr}}
+
+:root{--b5:#2F7D6B;--b6:#8A5A2B;--b7:#4A5A9B}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--b5:#6FC2AE;--b6:#D19A63;--b7:#9AA8E0}}
+:root[data-theme="dark"]{--b5:#6FC2AE;--b6:#D19A63;--b7:#9AA8E0}
+.appbar{display:flex;justify-content:space-between;align-items:center;gap:12px 20px;flex-wrap:wrap;padding:6px 0 14px;border-bottom:1px solid var(--line)}
+.appt{font-weight:700;font-size:clamp(1.25rem,2.2vw,1.5rem);letter-spacing:-.015em;line-height:1.2;margin-bottom:2px}
+.empty-state{padding:72px 0;max-width:640px}
+.empty-state h1{font-size:clamp(1.8rem,3.6vw,2.6rem);line-height:1.1;letter-spacing:-.03em;font-weight:600}
+.empty-state .lede{margin:14px 0 22px;color:var(--muted);font-size:1.02rem;line-height:1.6}
+.wpick{display:inline-flex;align-items:center;gap:4px}
+.wpick select{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:7px 10px;font:inherit;font-weight:600;color:inherit;max-width:62vw}
+.wnav{border:1px solid var(--line);background:var(--surface);border-radius:8px;width:34px;height:36px;font-size:1.2rem;line-height:1;cursor:pointer;color:inherit}
+.wnav:disabled{opacity:.35;cursor:default}
+.drop{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;border:2px dashed var(--line);border-radius:12px;padding:26px 16px;margin-top:16px;cursor:pointer;text-align:center;background:var(--bg)}
+.drop.over,.drop:hover{border-color:var(--ink)}
+.uptbl{width:100%;min-width:0;border-collapse:collapse;font-size:.86rem}
+.uptbl th,.uptbl td{padding:7px 6px;text-align:left;white-space:normal;border-bottom:1px solid var(--line)}
+.uptbl .fn{max-width:170px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.st{font-weight:600}.st.good{color:var(--olive)}.st.warn{color:var(--amber)}.st.bad{color:var(--tomato)}.st.muted{color:var(--muted)}
+.lw{display:grid;grid-template-columns:9.5em 1fr;gap:8px;padding:8px 0;border-bottom:1px solid var(--line);font-size:.88rem;align-items:start}
+.lw>span{display:flex;flex-wrap:wrap;gap:6px}
+.lchip{display:inline-flex;align-items:center;gap:4px;background:var(--bg);border:1px solid var(--line);border-radius:99px;padding:2px 4px 2px 10px}
+.lchip button{border:0;background:none;color:var(--muted);cursor:pointer;font-size:.95rem;width:20px;height:20px;border-radius:50%}
+.lchip button:hover{color:var(--tomato)}
+.btn:disabled{opacity:.5;cursor:default}
+#upDlg{width:min(680px,calc(100vw - 32px))}
+@media (max-width:600px){.lw{grid-template-columns:1fr}}
+.crow2 .nm{flex:1;min-width:0;background:var(--bg);border:1px solid var(--line);border-radius:7px;padding:5px 8px;font:inherit;color:inherit}
+#cityDlg{width:min(720px,calc(100vw - 32px))}
+@media (max-width:600px){.crow2{flex-wrap:wrap}}
+
+/* ---- paleta v2: base neutra fría, estados reservados (verde/ámbar/rojo) y marcas sin chocar con ellos ---- */
+:root{
+  --bg:#F4F5F8; --surface:#FFFFFF; --ink:#171B24; --muted:#5D6472; --line:#E0E3EA;
+  --accent:#3451D1; --accent-soft:#E6EAFB;
+  --olive:#1F8A4C; --olive-soft:#DDF3E5; --tomato:#D33A2C; --tomato-soft:#FBE3E0; --amber:#C27803; --amber-soft:#FCEFD6;
+  --b0:#3451D1; --b1:#7A3FD8; --b2:#A98BF0; --b3:#0E8C9C; --b4:#4CC3D1;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0E1117; --surface:#161A22; --ink:#E8EBF1; --muted:#9AA2B1; --line:#2A303B;
+  --accent:#8EA2FF; --accent-soft:#232B4D;
+  --olive:#4FCB80; --olive-soft:#173524; --tomato:#FF7B6E; --tomato-soft:#44201C; --amber:#F2B544; --amber-soft:#3F3015;
+  --b0:#8EA2FF; --b1:#B48CFF; --b2:#D9C8FF; --b3:#3CC7D6; --b4:#9BE6EE;}}
+:root[data-theme="dark"]{
+  --bg:#0E1117; --surface:#161A22; --ink:#E8EBF1; --muted:#9AA2B1; --line:#2A303B;
+  --accent:#8EA2FF; --accent-soft:#232B4D;
+  --olive:#4FCB80; --olive-soft:#173524; --tomato:#FF7B6E; --tomato-soft:#44201C; --amber:#F2B544; --amber-soft:#3F3015;
+  --b0:#8EA2FF; --b1:#B48CFF; --b2:#D9C8FF; --b3:#3CC7D6; --b4:#9BE6EE;}
+:focus-visible{outline-color:var(--accent)}
+.clear{color:var(--accent)}
+.bar .track b{background:var(--accent)}
+.bar .track b.t{background:var(--tomato)} .bar .track b.a{background:var(--amber)}
+.stack .e{background:var(--accent)}
+tbody tr.sel{background:var(--accent-soft)}
+</style>
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#171B24">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="KPIs Rappi">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" type="image/png" href="icon-192.png">
+<style>
+.appnav{display:none}
+@media (max-width:760px){
+  body{padding-bottom:calc(64px + env(safe-area-inset-bottom,0px))}
+  .appnav{display:flex;position:fixed;left:0;right:0;bottom:0;z-index:60;background:var(--surface);border-top:1px solid var(--line);padding:6px 4px calc(6px + env(safe-area-inset-bottom,0px));justify-content:space-around}
+  .appnav button{flex:1;border:0;background:none;color:var(--muted);font:inherit;font-size:.7rem;font-weight:600;display:flex;flex-direction:column;align-items:center;gap:3px;padding:4px 0;cursor:pointer}
+  .appnav button svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+  .appnav button.on{color:var(--accent)}
+  .appbar{padding-top:6px}
+}
+@media (display-mode: standalone){#upBtn,#editCities{display:none!important}}
+</style>
+</head>
+<body><div id="gate" hidden style="position:fixed;inset:0;z-index:9999;background:var(--bg);display:none;align-items:center;justify-content:center;padding:16px">
+  <form id="gateForm" style="width:100%;max-width:360px;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:28px">
+    <div class="appt" style="margin-bottom:6px">Mystic Foods · KPIs Rappi</div>
+    <p class="muted small" style="margin:0 0 18px">Ingresa la clave de acceso del equipo.</p>
+    <input id="gatePw" type="password" autocomplete="current-password" placeholder="Clave" aria-label="Clave de acceso" style="width:100%;box-sizing:border-box;padding:11px 12px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink);font:inherit">
+    <p id="gateErr" class="small" style="color:var(--tomato);min-height:1.2em;margin:8px 0 10px"></p>
+    <button type="submit" style="width:100%;padding:11px;border:0;border-radius:8px;background:var(--ink);color:var(--bg);font:inherit;font-weight:600;cursor:pointer">Entrar</button>
+  </form>
+</div>
+
+<div class="wrap">
+  <header class="appbar">
+    <div><div class="appt">Mystic Foods · KPIs de la operación en Rappi</div><div class="small muted" id="syncNote">Cargando…</div></div>
+    <button class="btn" id="upBtn" hidden>Cargar reportes de la semana</button>
+  </header>
+  <div class="empty-state" id="emptyState">
+    <h1 id="emptyTitle">Cargando el histórico…</h1>
+    <p class="lede" id="emptyText"></p>
+    <button class="btn" id="emptyBtn" hidden>Cargar reportes</button>
+  </div>
+  <div class="controls" id="controls" hidden>
+    <div class="crow">
+      <div class="wpick"><button class="wnav" id="wPrev" aria-label="Semana anterior">‹</button><select id="wSel" aria-label="Semana"></select><button class="wnav" id="wNext" aria-label="Semana siguiente">›</button></div>
+      <div class="tabs" role="tablist" id="tabs"></div>
+      <label class="filter"><span class="small muted">Ciudad</span><select id="city"></select></label>
+      <label class="filter"><span class="small muted">Tienda</span><select id="store"></select></label>
+    </div>
+    <div class="crow">
+      <div class="days" id="days" aria-label="Filtrar por fecha"></div>
+      <span class="note" id="dayNote"></span>
+    </div>
+    <div class="active" id="active"></div>
+    <div class="missnote" id="missNote" hidden></div>
+  </div>
+
+  <div id="main" hidden>
+  <div class="hero">
+    <div>
+      <p class="small muted" id="heroKicker" style="margin-bottom:10px"></p>
+      <h1 id="heroTitle"></h1>
+      <p class="lede" id="heroLede"></p>
+    </div>
+    <div class="gap" aria-label="Órdenes con demora frente al objetivo">
+      <div class="big" id="heroBig"></div>
+      <div class="small muted" id="heroCap" style="margin:6px 0 4px">de órdenes con demora · objetivo 10%</div><div id="heroDelta" style="margin-bottom:12px;min-height:1.2em"></div>
+      <div class="scale"><div class="fill" id="heroFill" style="width:0"></div><div class="target" id="heroTarget"></div></div>
+      <div class="legend"><span>0%</span><span id="tgtL" style="position:absolute;transform:translateX(-50%)">10%</span><span id="maxL">60%</span></div>
+    </div>
+  </div>
+
+  <div class="kpis" id="kpis"></div>
+
+  <section id="s-brands">
+    <div class="head"><div><h2>Marcas</h2><p class="muted">Toca una marca para entrar a su detalle.</p></div></div>
+    <div class="tscroll"><table id="btbl"><thead><tr>
+      <th>Marca</th><th>Tiendas</th><th>Pedidos ≈</th><th>Órdenes demoradas</th><th>% con demora</th><th>Δ vs sem. ant.</th><th>Espera repartidor</th><th>Reclamos</th><th>Disponibilidad</th><th>Cancel.</th>
+    </tr></thead><tbody></tbody></table></div>
+  </section>
+
+
+  <section id="s-hist">
+    <div class="head"><div><h2 id="histH">Histórico semanal</h2><p class="muted">Cómo evoluciona cada indicador semana a semana y mes a mes. Sigue los filtros de marca, ciudad y tienda; toca una fila de la tabla para ver esa semana en todo el tablero.</p></div></div>
+    <div class="crow" style="margin-bottom:12px"><div class="seg" id="histPer"></div><div class="seg" id="histSeg"></div></div>
+    <div class="grid2">
+      <div class="panel"><div id="histChart"></div><p class="note" id="histNote" style="margin-top:6px"></p></div>
+      <div class="panel" id="movers"><h3 id="moversT"></h3><p class="note" id="moversN"></p><div class="twocol"><div><h4 class="good">Mejoraron</h4><div id="better"></div></div><div><h4 class="bad">Empeoraron</h4><div id="worse"></div></div></div></div>
+    </div>
+    <div class="tscroll" style="margin-top:20px"><table id="histTbl"><thead><tr><th>Semana</th><th>Marcas</th><th>Con demora</th><th>Órdenes demoradas</th><th>Reclamos</th><th>Disponibilidad</th><th>Cancel.</th><th>Comp. restaurante</th></tr></thead><tbody></tbody></table></div>
+  </section>
+
+  <section id="s-period" hidden>
+    <div class="head"><div><h2 id="perH">Acumulado del histórico</h2><p class="muted" id="perLede"></p></div><label class="filter"><span class="small muted">Periodo</span><select id="perSel"></select></label></div>
+    <div class="tscroll"><table id="ptbl"><thead></thead><tbody></tbody></table></div>
+    <p class="small muted" style="margin-top:8px" id="perNote"></p>
+  </section>
+
+  <section id="s-cities">
+    <div class="head"><div><h2>Ciudades</h2><p class="muted">Toca una ciudad para filtrar todo el tablero.</p></div><button class="clear" id="editCities">Editar tiendas y ciudades</button></div>
+    <div class="tscroll"><table id="ctbl"><thead><tr>
+      <th>Ciudad</th><th>Tiendas</th><th>Órdenes ≈</th><th>Con demora</th><th>Espera repartidor</th><th>Reclamos</th><th>Disponibilidad</th><th>Cancel.</th>
+    </tr></thead><tbody></tbody></table></div>
+    <p class="small muted" style="margin-top:8px" id="cityNote"></p>
+  </section>
+
+  <section id="s-map">
+    <div class="head"><div><h2>Mapa de tiendas</h2><p class="muted">Cada círculo es una tienda: más arriba, más demora; más a la derecha, más reclamos. El tamaño indica el volumen de órdenes. Pasa el cursor para ver el detalle y toca para filtrar.</p></div></div>
+    <div class="panel scatter"><div id="scatter"></div><div class="legendb" id="blegend"></div></div>
+  </section>
+
+  <section id="s-stores">
+    <div class="head"><div><h2>Tiendas</h2><p class="muted">Toca una fila para filtrar todo el tablero por esa tienda. Toca un encabezado para ordenar.</p></div></div>
+    <div class="tscroll" style="max-height:560px"><table id="tbl"><thead><tr id="thead"></tr></thead><tbody></tbody></table></div>
+    <p class="small muted" style="margin-top:8px">Órdenes estimadas a partir de reclamos ÷ % de reclamos del reporte. "Demoradas" y "Espera" siguen el filtro de fecha; los porcentajes son de la semana completa. * Ciudad sugerida por el nombre de la tienda.</p>
+  </section>
+
+  <section id="s-delay">
+    <div class="head"><div><h2>Por qué se demoran las órdenes</h2><p class="muted" id="delayLede"></p></div></div>
+    <div class="grid2">
+      <div class="panel">
+        <h3>Preparación estimada vs. tiempo real</h3>
+        <div class="key"><span><i style="background:var(--olive)"></i>Preparación estimada</span><span><i style="background:var(--tomato)"></i>Espera extra del repartidor</span></div>
+        <div class="bars" id="prep"></div>
+      </div>
+      <div class="panel">
+        <div class="seg" id="dseg"></div>
+        <p class="small muted" id="dnote"></p>
+        <div class="dchart" id="dchart"></div>
+        <h3 style="margin-top:26px">Cuánto espera el repartidor</h3>
+        <div class="bars" id="waitDist"></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="s-claims">
+    <div class="head"><div><h2>Reclamos</h2><p class="muted" id="claimsLede"></p></div></div>
+    <div class="grid3">
+      <div class="panel"><h3>Motivo detallado</h3><div class="bars wide" id="details"></div></div>
+      <div class="panel"><h3>Productos más reclamados</h3><div class="bars" id="prods"></div></div>
+      <div class="panel">
+        <h3>Compensaciones</h3>
+        <p class="small muted">Pagado por el restaurante</p><div class="money bad" id="compRest"></div>
+        <p class="small muted" style="margin-top:12px">Pagado por Rappi</p><div class="money" id="compRappi"></div>
+        <h3 style="margin-top:22px">Tipo de reclamo</h3><div class="bars" id="motives"></div>
+      </div>
+    </div>
+    <div class="panel" style="margin-top:20px">
+      <div class="crow" style="justify-content:space-between;margin-bottom:10px"><h3 style="margin:0" id="clTitle">Lo que dijeron los clientes</h3>
+        <input class="search" id="q" type="search" placeholder="Buscar en comentarios o productos" aria-label="Buscar en reclamos"></div>
+      <div class="claims" id="claimList"></div>
+    </div>
+  </section>
+
+  <section id="s-avail">
+    <div class="head"><div><h2>Disponibilidad</h2><p class="muted" id="availLede"></p></div></div>
+    <div class="grid2">
+      <div class="panel"><h3>Tiempo sin disponibilidad por tienda</h3><div class="bars" id="downStores"></div>
+        <h3 style="margin-top:24px">Cancelaciones</h3><div id="canc"></div></div>
+      <div class="panel"><h3>Eventos</h3><div class="events" id="events"></div></div>
+    </div>
+  </section>
+
+  <footer id="foot"></footer>
+  </div>
+</div>
+<div id="tip" role="tooltip"></div>
+<dialog id="upDlg" aria-labelledby="upT">
+  <h2 id="upT" style="font-size:1.35rem">Cargar reportes semanales</h2>
+  <p class="small muted" style="margin-top:4px">En el portal de partners de Rappi descarga el reporte de nivel de servicio de cada marca (Excel). Puedes subir varios a la vez; el tablero detecta la marca y la semana de cada archivo. Si un archivo cubre varias semanas, se desglosa por semana y no reemplaza las semanas que ya tienen reporte semanal.</p>
+  <label class="drop" id="drop"><input type="file" id="upFile" accept=".xlsx,.xls" multiple hidden><b>Arrastra los archivos aquí</b><span class="small muted">o toca para elegirlos</span></label>
+  <p class="small" id="upMsg" role="status"></p>
+  <div id="upList"></div>
+  <h3 style="margin:20px 0 8px">Reportes en el histórico</h3>
+  <div id="upLoaded"></div>
+  <div class="dlgbar"><span style="flex:1"></span><button class="btn2" id="upCancel">Cerrar</button><button class="btn" id="upSave" disabled>Guardar</button></div>
+</dialog>
+<dialog id="cityDlg" aria-labelledby="cityDlgT">
+  <h2 id="cityDlgT" style="font-size:1.35rem">Editar tiendas y ciudades</h2>
+  <p class="small muted" style="margin-top:4px">Los reportes de Rappi no traen la ciudad y algunos nombres vienen abreviados. Escribe el nombre con el que quieres ver cada tienda (vacío usa el de Rappi) y asigna su ciudad. El cambio lo ve todo el equipo.</p>
+  <div id="cityRows"></div>
+  <div class="dlgbar"><button class="resetall" id="cityReset">Restaurar sugeridas</button><span style="flex:1"></span><button class="btn2" id="cityCancel">Cancelar</button><button class="btn" id="citySave">Guardar cambios</button></div>
+</dialog>
+<nav class="appnav" id="appnav" aria-label="Secciones">
+<button data-t="top"><svg viewBox="0 0 24 24"><path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg>Resumen</button>
+<button data-t="s-brands"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 10h18M9 10v10"/></svg>Marcas</button>
+<button data-t="s-hist"><svg viewBox="0 0 24 24"><path d="M3 20h18M5 16l4-5 4 3 6-8"/></svg>Histórico</button>
+<button data-t="s-stores"><svg viewBox="0 0 24 24"><path d="M4 9l2-5h12l2 5M4 9v11h16V9M4 9h16"/></svg>Tiendas</button>
+<button data-t="s-claims"><svg viewBox="0 0 24 24"><path d="M4 5h16v11H8l-4 4z"/></svg>Reclamos</button>
+</nav>
+<script>
+(function(){const n=document.getElementById('appnav');n.querySelectorAll('button').forEach(b=>b.onclick=()=>{const t=b.dataset.t;
+ if(t==='top')window.scrollTo({top:0,behavior:'smooth'});else{const e=document.getElementById(t);if(e)e.scrollIntoView({behavior:'smooth'})}});
+ const ids=['s-brands','s-hist','s-stores','s-claims'];
+ addEventListener('scroll',()=>{let cur='top';ids.forEach(i=>{const e=document.getElementById(i);if(e&&!e.hidden&&e.getBoundingClientRect().top<innerHeight*0.4)cur=i});
+  n.querySelectorAll('button').forEach(b=>b.classList.toggle('on',b.dataset.t===cur))},{passive:true});
+ n.querySelector('button').classList.add('on')})();
+</script>
+<script>
+
+let WEEKS = [];
+const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const fmtP=(v,d=1)=>v==null?'–':v.toLocaleString('es-CO',{minimumFractionDigits:d,maximumFractionDigits:d})+'%';
+const fmtN=(v,d=0)=>v==null?'–':v.toLocaleString('es-CO',{minimumFractionDigits:d,maximumFractionDigits:d});
+const money=v=>'$'+Math.round(v).toLocaleString('es-CO');
+const hrs=m=>m>=60?`${Math.floor(m/60)} h${m%60?' '+m%60+' m':''}`:`${m} m`;
+const avg=a=>a.length?a.reduce((x,y)=>x+y,0)/a.length:0;
+const sum=a=>a.reduce((x,y)=>x+y,0);
+const WD=['dom','lun','mar','mié','jue','vie','sáb'];
+const WDL=['Lun','Mar','Mié','Jue','Vie','Sáb','Dom'];
+const dayOf=d=>new Date(d+'T12:00:00');
+const dlabel=d=>`${WD[dayOf(d).getDay()]} ${+d.slice(8)}`;
+const MES=['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+const dlong=d=>{const x=dayOf(d);return `${['domingo','lunes','martes','miércoles','jueves','viernes','sábado'][x.getDay()]} ${x.getDate()} de ${MES[x.getMonth()]}`};
+const dshort=d=>`${+d.slice(8)} ${MES[+d.slice(5,7)-1].slice(0,3)}`;
+let DATES=[];
+
+// ---------- prepare data ----------
+function prepWeek(WK){
+ WK.brands.forEach((b,bi)=>{
+  const parts=b.brand.split(' - '), base=parts[0], suf=parts.slice(1).join(' - ');
+  b.i=bi; b.label=b.brand.replace(/ - /g,' '); b.color=`var(--b${bi})`;
+  b.short=n=>{let x=n.replace(new RegExp('^'+base+'\\s*-?\\s*','i'),''); if(suf) x=x.replace(new RegExp('\\s+-\\s+'+suf+'$','i'),'');
+    x=x.trim(); if(!x||/^\d/.test(x)) return n; const p=x.split(' - ');
+    if(p.length===2) x=p[1].toLowerCase().startsWith(p[0].toLowerCase())?p[1]:p[0]; return x.charAt(0).toUpperCase()+x.slice(1)};
+  b.ordersEst=b.summary.orders??(b.summary.errorPct?b.summary.errorN/(b.summary.errorPct/100):null);
+  const wb={}; b.waits.forEach(w=>{w.bi=bi;(wb[w.store]=wb[w.store]||[]).push(w)});
+  b.stores.forEach(s=>{s.bi=bi;s.short=(typeof NAME_MAP!=='undefined'&&NAME_MAP[s.name])||b.short(s.name);const w=wb[s.name]||[];s.nDelayed=w.length;
+    if(s.orders==null&&s.delay>0&&w.length) s.orders=Math.round(w.length/(s.delay/100))});
+  ['claims','products','downtime','cancellations'].forEach(k=>b[k].forEach(x=>x.bi=bi));
+  const po={}; b.products.forEach(p=>{if(p.product)(po[p.order]=po[p.order]||[]).push(p.product)});
+  b.claims.forEach(c=>c.products=po[c.order]||[]);
+  b.missing=!!b.missing;
+ });
+ const BRw=WK.brands;
+ WK.ALL={stores:BRw.flatMap(b=>b.stores),waits:BRw.flatMap(b=>b.waits),claims:BRw.flatMap(b=>b.claims),products:BRw.flatMap(b=>b.products),downtime:BRw.flatMap(b=>b.downtime),cancellations:BRw.flatMap(b=>b.cancellations)};
+ WK.storeBy={}; WK.ALL.stores.forEach(s=>WK.storeBy[s.name]=s);
+}
+let Wk=0, BR=[], ALL={stores:[],waits:[],claims:[],products:[],downtime:[],cancellations:[]}, storeBy={};
+function loadWeek(k){Wk=k;const WK=WEEKS[k];BR=WK.brands;ALL=WK.ALL;storeBy=WK.storeBy;DATES=WK.dates}
+function withWeek(k,fn){const c=Wk;loadWeek(k);try{return fn()}finally{loadWeek(c)}}
+const shortOf=n=>{for(let k=WEEKS.length-1;k>=0;k--){const s=WEEKS[k].storeBy[n];if(s)return s.short}return n};
+
+// ---------- cities ----------
+const CITIES=['Medellín','Envigado','Rionegro','Bogotá','Barranquilla','Sin asignar'];
+const CITY0={};
+const setC=(names,c,g)=>names.forEach(n=>CITY0[n]={c,g:!!g});
+setC(['Olivia Laureles','Olivia Oviedo','Olivia Manila','Olivia San Lucas','Olivia Arkadia','Olivia - Zona 2','Olivia - 10b','Olivia Amsterdam','Olivia Lemont','Olivia Santa Fe'],'Medellín');
+setC(['Olivia 81'],'Bogotá');
+setC(['Olivia Mayorca','Olivia Fabricato'],'Medellín',true);
+setC(['Olivia Envigado'],'Envigado');
+setC(['Olivia 118','Olivia Zona G.','OLIVIA SALITRE','Olivia Usaquen','Olivia Titan','Olivia Parque Colina','Olivia Cedritos 140','Olivia Nqs'],'Bogotá');
+setC(['Olivia - Barraquilla','Olivia Viva Barranquilla'],'Barranquilla');
+setC(['Olivia Plaza'],'Barranquilla');
+const CITY_FIXED={...CITY0};
+function buildCities(){
+  Object.keys(CITY0).forEach(k=>{if(!CITY_FIXED[k])delete CITY0[k]});
+  WEEKS.forEach(w=>w.brands.forEach(b=>b.stores.forEach(s=>{ if(CITY0[s.name]) return;
+    const n=s.name.toLowerCase(), clap=/^clap/i.test(b.brand);
+    if(/san nicol|rionegro/.test(n)) CITY0[s.name]={c:'Rionegro',g:true};
+    else if(/bogot|usaqu|chapinero|salitre|cedritos|zona g/.test(n)) CITY0[s.name]={c:'Bogotá',g:true};
+    else if(/barranq|\bbaq\b/.test(n)) CITY0[s.name]={c:'Barranquilla',g:true};
+    else if(/sebastiana/.test(n)) CITY0[s.name]={c:'Envigado',g:true};
+    else if(/envigado/.test(n)) CITY0[s.name]={c:'Envigado'};
+    else if(/visitaci/.test(n)) CITY0[s.name]={c:'Medellín',g:true};
+    else if(clap) CITY0[s.name]={c:'Medellín'};
+  })));
+}
+let cityMap={};
+const cityOf=n=>cityMap[n]||(CITY0[n]&&CITY0[n].c)||'Sin asignar';
+const isGuess=n=>!cityMap[n]&&CITY0[n]&&CITY0[n].g;
+
+// ---------- state ----------
+const S={b:-1,city:'',store:'',day:'',detail:'',product:'',motive:'',q:'',dview:'dates',hidden:new Set(),sortK:'delay',sortDir:-1};
+const scopeBrands=()=>(S.b<0?BR.filter(b=>!b.missing):[BR[S.b]]).filter(b=>S.b>=0||!S.hidden.has(b.i));
+const inScope=x=>(S.b<0?!S.hidden.has(x.bi):x.bi===S.b)&&(!S.city||cityOf(x.store||x.name)===S.city)&&(!S.store||x.store===S.store||x.name===S.store);
+const scopeStores=(ignoreCity)=>(S.b<0?ALL.stores.filter(s=>!S.hidden.has(s.bi)):BR[S.b].stores).filter(s=>ignoreCity||!S.city||cityOf(s.name)===S.city);
+function agg(st){const o=st.filter(s=>s.orders);const ord=sum(o.map(s=>s.orders));
+  return {orders:ord,delay:ord?sum(o.map(s=>s.delay*s.orders))/ord:null,claimPct:ord?sum(st.map(s=>s.claims))/ord*100:null,claims:sum(st.map(s=>s.claims)),
+    avail:(()=>{const v=st.map(s=>s.avail).filter(x=>x!=null);return v.length?avg(v):null})(),cancel:sum(st.map(s=>s.cancel)),cancelPct:ord?sum(st.map(s=>s.cancel))/ord*100:null,n:st.length}}
+const pick=k=>ALL[k].filter(inScope);
+
+// ---------- controls ----------
+
+$('#store').onchange=e=>{S.store=e.target.value;resetSub();render()};
+$('#city').onchange=e=>{S.city=e.target.value;S.store='';resetSub();render()};
+function setWeek(k){loadWeek(k);S.day='';if(S.store&&!storeBy[S.store])S.store='';resetSub();render()}
+$('#q').oninput=e=>{S.q=e.target.value.trim();renderClaims();renderActive()};
+
+function resetSub(){S.detail='';S.product='';S.motive=''}
+function setBrand(i){S.b=i;S.store='';resetSub();if(!['dates'].includes(S.dview)&&i<0)S.dview='dates';render()}
+function setStore(n){ if(S.store===n){S.store=''} else {S.store=n; } resetSub(); render(); }
+function toggle(k,v){S[k]=S[k]===v?'':v;render()}
+
+function renderControls(){
+  const byM={};WEEKS.forEach((w,k)=>(byM[w.month]=byM[w.month]||[]).push(k));
+  $('#wSel').innerHTML=Object.keys(byM).sort().reverse().map(m=>`<optgroup label="${monthLabel(m)}">${byM[m].slice().reverse().map(k=>`<option value="${k}" ${k===Wk?'selected':''}>Semana ${WEEKS[k].label}${WEEKS[k].brands.some(b=>b.partial)?' · incompleta':''}${k===WEEKS.length-1?' · última':''}</option>`).join('')}</optgroup>`).join('');
+  $('#wPrev').disabled=Wk<=0;$('#wNext').disabled=Wk>=WEEKS.length-1;
+  $('#tabs').innerHTML=[`<button class="tab" role="tab" data-i="-1">Todas<small>${ALL.stores.length}</small></button>`]
+    .concat(BR.map(b=>`<button class="tab ${b.missing?'miss':''}" role="tab" data-i="${b.i}">${esc(b.label)}<small>${b.missing?'sin datos':b.stores.length}</small></button>`)).join('');
+  $$('.tab').forEach(t=>t.onclick=()=>setBrand(+t.dataset.i));
+  $$('.tab').forEach(t=>t.setAttribute('aria-selected',+t.dataset.i===S.b));
+  $('#days').innerHTML=[`<button class="day" data-d=""><small>&nbsp;</small>Semana</button>`].concat(DATES.map(d=>`<button class="day" data-d="${d}"><small>${WD[dayOf(d).getDay()]}</small>${+d.slice(8)}</button>`)).join('');
+  $$('.day').forEach(b=>b.onclick=()=>{S.day=b.dataset.d;render()});
+  const miss=BR.filter(b=>b.missing);
+  $('#missNote').innerHTML=miss.length?`Falta el reporte de <b>${miss.map(b=>esc(b.label)).join(', ')}</b> para la semana del ${WEEKS[Wk].label}. Los totales de esta semana y sus comparaciones incluyen solo las marcas con datos.`:'';
+  const der=BR.some(b=>b.derived),par=BR.some(b=>b.partial);
+  const ld=lastDayOf();
+  if(der)$('#missNote').innerHTML=(miss.length?$('#missNote').innerHTML+' ':'')+`Semana tomada del reporte semestral de Rappi: trae las órdenes demoradas, tiempos, reclamos, compensaciones y cancelaciones de cada día, pero no los porcentajes, porque Rappi no informa cuántos pedidos hubo por semana.${par&&ld?` <b>Semana incompleta</b>: hay datos hasta el ${dlong(ld)}.`:''}`;
+  $('#missNote').hidden=!miss.length&&!der;
+  const cs=scopeStores(true), present=CITIES.filter(c=>cs.some(s=>cityOf(s.name)===c));
+  $('#city').innerHTML=`<option value="">Todas las ciudades</option>`+present.map(c=>`<option ${c===S.city?'selected':''}>${c}</option>`).join('');
+  const st=scopeStores().slice().sort((a,b)=>a.short.localeCompare(b.short));
+  $('#store').innerHTML=`<option value="">Todas las tiendas (${st.length})</option>`+st.map(s=>`<option value="${esc(s.name)}" ${s.name===S.store?'selected':''}>${esc(s.short)}${S.b<0?' · '+esc(BR[s.bi].label):''}</option>`).join('');
+  $$('.day').forEach(b=>b.setAttribute('aria-pressed',b.dataset.d===S.day));
+  $('#dayNote').textContent=S.day?'La fecha filtra demoras, reclamos, eventos y cancelaciones. Los porcentajes siguen siendo semanales.':'';
+}
+function renderActive(){
+  const f=[];
+  if(S.city) f.push(['city',`Ciudad: ${S.city}`]);
+  if(S.store) f.push(['store',`Tienda: ${shortOf(S.store)}`]);
+  if(S.day) f.push(['day',`Fecha: ${dlabel(S.day)}`]);
+  if(S.motive) f.push(['motive',`Tipo: ${S.motive}`]);
+  if(S.detail) f.push(['detail',`Motivo: ${S.detail}`]);
+  if(S.product) f.push(['product',`Producto: ${S.product}`]);
+  if(S.q) f.push(['q',`Búsqueda: “${S.q}”`]);
+  $('#active').innerHTML=f.map(([k,l])=>`<span class="af">${esc(l)}<button data-k="${k}" aria-label="Quitar filtro">×</button></span>`).join('')+(f.length>1?`<button class="resetall" id="resetall">Limpiar filtros</button>`:'');
+  $('#active').style.display=f.length?'flex':'none';
+  $$('#active .af button').forEach(b=>b.onclick=()=>{S[b.dataset.k]='';if(b.dataset.k==='q')$('#q').value='';render()});
+  const r=$('#resetall'); if(r) r.onclick=()=>{S.city='';S.store='';S.day='';resetSub();S.q='';$('#q').value='';render()};
+}
+
+// ---------- tooltip ----------
+const tip=$('#tip');
+document.addEventListener('mousemove',e=>{const el=e.target.closest('[data-tip]');
+  if(!el){tip.classList.remove('show');return}
+  tip.innerHTML=el.dataset.tip; tip.classList.add('show');
+  const w=tip.offsetWidth,h=tip.offsetHeight; let x=e.clientX+14,y=e.clientY+14;
+  if(x+w>innerWidth-8)x=e.clientX-w-14; if(y+h>innerHeight-8)y=e.clientY-h-14; tip.style.left=x+'px';tip.style.top=y+'px'});
+document.addEventListener('scroll',()=>tip.classList.remove('show'),{passive:true});
+
+// ---------- metrics ----------
+function scopeMetrics(only){
+  if(S.store){const s=storeBy[S.store];if(!s)return {label:shortOf(S.store),missing:true};return {delay:s.delay,claimPct:s.claimPct,avail:s.avail,cancelPct:s.cancelPct,claims:s.claims,cancel:s.cancel,orders:s.orders,label:s.short,store:s}}
+  const bs=scopeBrands().filter(b=>!only||only.includes(b.i));
+  const _miss=BR.filter(b=>b.missing).map(b=>b.label);
+  const base=S.b>=0?BR[S.b].label:(bs.length===BR.length?'Mystic Foods':bs.length+_miss.length===BR.length&&_miss.length?`Mystic Foods (sin ${_miss.join(', ')})`:bs.map(b=>b.label).join(', '));
+  if(S.b>=0&&BR[S.b].missing)return {label:BR[S.b].label,missing:true};
+  if(S.city){const m=agg(scopeStores().filter(s=>!only||only.includes(s.bi)));return {...m,label:`${base} en ${S.city}`,all:true}}
+  if(S.b>=0){const b=BR[S.b],m=b.summary;return {delay:m.delay,claimPct:m.errorPct,avail:m.avail,cancelPct:m.cancelPct,claims:m.errorN,cancel:m.cancelN,orders:b.ordersEst,label:b.label,brand:b}}
+  const pb=bs.filter(b=>b.ordersEst), ord=sum(pb.map(b=>b.ordersEst));
+  const av=bs.flatMap(b=>b.stores).map(s=>s.avail).filter(x=>x!=null);
+  const pd=pb.filter(b=>b.summary.delay!=null),od=sum(pd.map(b=>b.ordersEst));
+  return {delay:od?sum(pd.map(b=>b.summary.delay*b.ordersEst))/od:null,claimPct:ord?sum(pb.map(b=>b.summary.errorN))/ord*100:null,
+    avail:av.length?avg(av):null,cancelPct:ord?sum(pb.map(b=>b.summary.cancelN))/ord*100:null,claims:sum(bs.map(b=>b.summary.errorN)),cancel:sum(bs.map(b=>b.summary.cancelN)),orders:ord,label:base,all:true};
+}
+const cls=(v,t,hb)=>v==null?'':(hb?v>=t:v<=t)?'good':(hb?v>=t-5:v<=t*1.5)?'warn':'bad';
+const commonBrands=()=>Wk>0?BR.filter(b=>!b.missing&&!WEEKS[Wk-1].brands[b.i].missing).map(b=>b.i):[];
+function prevPair(){ if(Wk===0)return null; const cb=commonBrands(); if(!cb.length)return null;
+  const cur=scopeMetrics(S.b<0?cb:null); const prev=withWeek(Wk-1,()=>scopeMetrics(S.b<0?cb:null));
+  if(cur.missing||prev.missing)return null; return {cur,prev,partial:S.b<0&&cb.length<BR.filter(b=>!b.missing).length}}
+function dHTML(d,lowerBetter,unit='pp',dec=1){ if(d==null||isNaN(d))return ''; if(Math.abs(d)<0.05)return `<span class="dl muted">= sin cambio</span>`;
+  const good=lowerBetter?d<0:d>0; return `<span class="dl ${good?'good':'bad'}">${d>0?'▲':'▼'} ${fmtN(Math.abs(d),dec)} ${unit}</span>`}
+const prevLabel=()=>Wk>0?WEEKS[Wk-1].label:'';
+
+function renderHero(){
+  const m=scopeMetrics(), d=m.delay;
+  $('#heroKicker').textContent=`Nivel de servicio Rappi · semana del ${WEEKS[Wk].long} de ${WEEKS[Wk].year}`;
+  if(m.missing){$('#heroTitle').textContent=`No hay reporte de ${m.label} para la semana del ${WEEKS[Wk].label}.`;$('#heroLede').textContent='Cambia de semana arriba para ver sus datos anteriores, o agrega el reporte de esta semana.';$('#heroBig').textContent='–';$('#heroDelta').innerHTML='';requestAnimationFrame(()=>$('#heroFill').style.width='0');return}
+  const pp=prevPair(); $('#heroDelta').innerHTML=d==null?(Wk>0?(()=>{const pv=withWeek(Wk-1,()=>pick('waits').length);return pv?`${dHTML(pick('waits').length-pv,true,'',0)} <span class="muted small">órdenes demoradas vs ${prevLabel()} (${fmtN(pv)})</span>`:''})():''):pp&&pp.prev.delay!=null?`${dHTML(pp.cur.delay-pp.prev.delay,true)} <span class="muted small">vs ${prevLabel()} (${fmtP(pp.prev.delay,1)})${pp.partial?' · mismas marcas':''}</span>`:'';
+  const nl=pick('waits').length;
+  $('#heroCap').textContent=d==null?'órdenes demoradas · sin % esta semana':'de órdenes con demora · objetivo 10%';
+  $('#heroTitle').textContent= d==null?`En ${m.label} salieron ${fmtN(nl)} órdenes tarde esta semana.`:d<=10?`${m.label} está dentro del objetivo de demora esta semana.`:`En ${m.label}, ${Math.round(d)} de cada 100 órdenes salieron tarde. El objetivo es 10.`;
+  const w=pick('waits').filter(x=>!S.day||x.date===S.day);
+  const e=avg(w.map(x=>x.est)), r=avg(w.map(x=>x.real));
+  $('#heroLede').textContent= w.length? `${S.day?'El '+dlong(S.day)+', en':'En'} las ${fmtN(w.length)} órdenes con demora${m.all?'':''}, la cocina estimó ${fmtN(e)} minutos de preparación y tardó ${fmtN(r)}. El repartidor esperó en promedio ${fmtN(r-e,1)} minutos en la tienda.`:`No hay órdenes con demora ${S.day?'el '+dlong(S.day):'en el periodo'}.`;
+  $('#heroBig').textContent=d==null?fmtN(nl):(m.all&&!S.store?'≈':'')+fmtP(d,1);
+  $('.gap .scale').style.display=$('.gap .legend').style.display=d==null?'none':'';
+  const MX=(d||0)>60?100:60; $('#maxL').textContent=MX+'%'; $('#tgtL').style.left=$('#heroTarget').style.left=(10/MX*100)+'%';
+  requestAnimationFrame(()=>$('#heroFill').style.width=Math.min((d||0)/MX*100,100)+'%');
+}
+// conteos de la semana cargada, con los filtros activos
+function cnt(){const cl=pick('claims');return {late:pick('waits').length,claims:cl.length,comp:sum(cl.map(c=>c.compRest)),compR:sum(cl.map(c=>c.compRappi)),cancel:pick('cancellations').length,down:sum(pick('downtime').map(d=>d.mins))}}
+const weekPartial=()=>BR.some(b=>b.partial&&!b.missing);
+const lastDayOf=()=>BR.map(b=>b.lastDay).filter(Boolean).sort().pop();
+function renderKpis(){
+  const m=scopeMetrics(), ap=m.all&&!S.store?'≈':'';
+  if(m.missing){$('#kpis').innerHTML='';return}
+  const c=cnt();
+  const P=Wk>0?withWeek(Wk-1,()=>{const pm=scopeMetrics();return pm.missing?null:{c:cnt(),m:pm}}):null;
+  const vs=`<span class="muted">vs ${prevLabel()}${weekPartial()?' · semana incompleta':''}</span>`;
+  const dl=(cur,prev,lb,unit,dec)=>P&&cur!=null&&prev!=null?`<div class="t">${dHTML(cur-prev,lb,unit,dec)} ${vs}</div>`:'';
+  const T=[];
+  // Órdenes con demora
+  if(m.delay!=null)T.push({l:'Órdenes con demora',v:ap+fmtP(m.delay,1),c:cls(m.delay,10,false),t:`${fmtN(c.late)} órdenes · objetivo ≤ 10 %`,d:P&&P.m.delay!=null?dl(m.delay,P.m.delay,true,'pp',1):dl(c.late,P&&P.c.late,true,'órdenes',0)});
+  else T.push({l:'Órdenes con demora',v:fmtN(c.late),c:'',t:'órdenes demoradas · Rappi no da el % de esta semana',d:dl(c.late,P&&P.c.late,true,'órdenes',0)});
+  // Reclamos
+  if(m.claimPct!=null)T.push({l:'Reclamos',v:ap+fmtP(m.claimPct,2),c:m.claimPct>5?'bad':m.claimPct>3?'warn':'good',t:`${fmtN(c.claims)} órdenes${m.orders?' de ≈'+fmtN(m.orders>1000?Math.round(m.orders/100)*100:Math.round(m.orders)):''}`,d:P&&P.m.claimPct!=null?dl(m.claimPct,P.m.claimPct,true,'pp',2):dl(c.claims,P&&P.c.claims,true,'reclamos',0)});
+  else T.push({l:'Reclamos',v:fmtN(c.claims),c:'',t:'órdenes con reclamo',d:dl(c.claims,P&&P.c.claims,true,'reclamos',0)});
+  // Disponibilidad
+  const cov=scopeBrands().some(b=>b.downCovered);
+  if(m.avail!=null)T.push({l:'Disponibilidad',v:ap+fmtP(m.avail,1),c:cls(m.avail,87,true),t:m.all&&!S.store&&(S.city||S.b<0)?'promedio de tiendas · objetivo ≥ 87 %':'objetivo ≥ 87 %',d:P&&P.m.avail!=null?dl(m.avail,P.m.avail,false,'pp',1):''});
+  else if(cov)T.push({l:'Tiempo fuera de línea',v:hrs(c.down),c:c.down>600?'bad':c.down>120?'warn':'good',t:`suma de ${scopeStores().length} tiendas, solo esta semana (${dshort(DATES[0])}–${dshort(DATES[6])}) · en horario de atención`,d:(()=>{const n=scopeStores().length;return n>1?`<div class="t">≈ ${hrs(Math.round(c.down/n))} por tienda</div>`:''})()});
+  else T.push({l:'Disponibilidad',v:'–',c:'',t:'sin datos de Rappi para esta semana',d:''});
+  // Cancelaciones
+  if(m.cancelPct!=null)T.push({l:'Cancelaciones',v:ap+fmtP(m.cancelPct,2),c:m.cancelPct>0.5?'warn':'good',t:`${fmtN(c.cancel)} órdenes`,d:P&&P.m.cancelPct!=null?dl(m.cancelPct,P.m.cancelPct,true,'pp',2):dl(c.cancel,P&&P.c.cancel,true,'',0)});
+  else T.push({l:'Cancelaciones',v:fmtN(c.cancel),c:c.cancel?'warn':'good',t:'órdenes canceladas',d:dl(c.cancel,P&&P.c.cancel,true,'',0)});
+  // Compensaciones
+  T.push({l:'Comp. restaurante',v:money(c.comp),c:'',t:`Rappi pagó ${money(c.compR)}`,d:P?`<div class="t">${dHTML(c.comp-P.c.comp,true,'',0).replace(/([▲▼]) ([\d.]+)/,(x,a,b)=>a+' $'+b)} ${vs}</div>`:''});
+  $('#kpis').innerHTML=T.map(x=>`<div class="kpi"><div class="l">${x.l}</div><div class="v ${x.c}">${x.v}</div><div class="t">${x.t}</div>${x.d}</div>`).join('');
+}
+
+function renderBrands(){
+  $('#s-brands').hidden=S.b>=0||!!S.store;
+  if(S.b>=0||S.store) return;
+  const inC=x=>(!S.city||cityOf(x.store)===S.city);
+  const w=b=>b.waits.filter(x=>(!S.day||x.date===S.day)&&inC(x));
+  const PB=Wk>0?WEEKS[Wk-1].brands:null;
+  const rows=BR.map(b=>{if(b.missing)return `<tr class="dim" style="cursor:default"><td><span class="brandcol"><i style="background:${b.color}"></i>${esc(b.label)}</span></td><td colspan="9" style="text-align:left" class="muted">Sin reporte esta semana</td></tr>`;
+    const st=b.stores.filter(s=>!S.city||cityOf(s.name)===S.city);if(!st.length)return '';
+    const m=S.city?agg(st):{orders:b.ordersEst,delay:b.summary.delay,claimPct:b.summary.errorPct,avail:b.summary.avail};
+    const pb=PB&&!PB[b.i].missing?PB[b.i]:null;
+    const pm=pb?(S.city?agg(pb.stores.filter(s=>cityOf(s.name)===S.city)):{delay:pb.summary.delay}):null;
+    const late=b.waits.filter(inC).length, plate=pb?pb.waits.filter(inC).length:null;
+    const cl=b.claims.filter(inC).length, cc=b.cancellations.filter(inC).length;
+    const dd=m.delay!=null&&pm&&pm.delay!=null?dHTML(m.delay-pm.delay,true):pb?dHTML(late-plate,true,'órd.',0):'–';
+    return `<tr data-i="${b.i}" tabindex="0" class="${S.hidden.has(b.i)?'dim':''}">
+    <td><span class="brandcol"><i style="background:${b.color}"></i>${esc(b.label)}</span></td><td>${st.length}</td><td>${m.orders?'≈'+fmtN(Math.round(m.orders)):'–'}</td>
+    <td>${fmtN(late)}</td><td>${m.delay==null?'<span class="muted">–</span>':`<span class="pill ${cls(m.delay,10,false)}">${fmtP(m.delay)}</span>`}</td><td>${dd||'<span class="muted">=</span>'}</td><td>${w(b).length?fmtN(avg(w(b).map(x=>x.wait)),1)+' min':'–'}</td>
+    <td>${fmtN(cl)}${m.claimPct!=null?` <span class="muted small">(${fmtP(m.claimPct,2)})</span>`:''}</td><td>${m.avail==null?'<span class="muted">–</span>':`<span class="pill ${cls(m.avail,87,true)}">${fmtP(m.avail,1)}</span>`}</td><td>${cc||'–'}</td></tr>`}).join('');
+  $('#btbl tbody').innerHTML=rows||'<tr><td colspan="10" class="empty">Ninguna marca tiene tiendas en esta ciudad.</td></tr>';
+  $$('#btbl tbody tr[data-i]').forEach(tr=>{tr.onclick=()=>setBrand(+tr.dataset.i);tr.onkeydown=e=>{if(e.key==='Enter')setBrand(+tr.dataset.i)}});
+}
+
+function renderCities(){
+  $('#s-cities').hidden=!!S.store;
+  if(S.store) return;
+  const st=scopeStores(true);
+  const wf=pick('waits'); 
+  const rows=CITIES.map(c=>{const cs=st.filter(s=>cityOf(s.name)===c);if(!cs.length)return '';const m=agg(cs);
+    const ww=ALL.waits.filter(x=>cs.some(s=>s.name===x.store)&&(!S.day||x.date===S.day));
+    return `<tr data-c="${c}" tabindex="0" class="${S.city===c?'sel':''} ${S.city&&S.city!==c?'dim':''}">
+    <td>${c==='Sin asignar'?'<span class="muted">Sin asignar</span>':c}</td><td>${cs.length}</td><td>${m.orders?'≈'+fmtN(Math.round(m.orders)):'–'}</td>
+    <td>${m.delay==null?`<span class="muted">${fmtN(ww.length)} órd.</span>`:`<span class="pill ${cls(m.delay,10,false)}">${fmtP(m.delay)}</span>`}</td><td>${ww.length?fmtN(avg(ww.map(x=>x.wait)),1)+' min':'–'}</td>
+    <td>${m.claimPct==null?`<span class="muted">${fmtN(m.claims)} rec.</span>`:fmtP(m.claimPct,2)}</td><td><span class="pill ${cls(m.avail,87,true)}">${fmtP(m.avail,2)}</span></td><td>${m.cancel||'–'}</td></tr>`}).join('');
+  $('#ctbl tbody').innerHTML=rows;
+  $$('#ctbl tbody tr').forEach(tr=>{const go=()=>{S.city=S.city===tr.dataset.c?'':tr.dataset.c;S.store='';resetSub();render()};tr.onclick=go;tr.onkeydown=e=>{if(e.key==='Enter')go()}});
+  const un=st.filter(s=>cityOf(s.name)==='Sin asignar').length, gs=st.filter(s=>isGuess(s.name)).length;
+  $('#cityNote').textContent=(un?`${un} tienda${un>1?'s':''} sin ciudad asignada. `:'')+(gs?`${gs} ${gs>1?'asignaciones sugeridas':'asignación sugerida'} por el nombre de la tienda; revísalas en "Editar ciudades". `:'')+'Las cifras por ciudad se calculan desde las tiendas, ponderadas por órdenes.';
+}
+function renderScatter(){
+  const st=scopeStores();
+  const W=760,H=360,L=46,R=16,T=14,B=40;
+  const xm=Math.max(12,Math.ceil(Math.max(...st.map(s=>s.claimPct||0))/2)*2), ym=Math.max(70,Math.ceil(Math.max(...st.map(s=>s.delay||0))/10)*10);
+  const X=v=>L+(v/xm)*(W-L-R), Y=v=>H-B-(v/ym)*(H-T-B);
+  const omax=Math.max(...st.map(s=>s.orders||0));
+  const rr=o=>4+Math.sqrt((o||5)/omax)*16;
+  let g='';
+  for(let v=0;v<=ym;v+=10) g+=`<line class="axis" x1="${L}" x2="${W-R}" y1="${Y(v)}" y2="${Y(v)}"/><text x="${L-8}" y="${Y(v)+4}" text-anchor="end">${v}%</text>`;
+  for(let v=0;v<=xm;v+=2) g+=`<text x="${X(v)}" y="${H-B+18}" text-anchor="middle">${v}%</text>`;
+  g+=`<line x1="${L}" x2="${W-R}" y1="${Y(10)}" y2="${Y(10)}" stroke="var(--ink)" stroke-dasharray="5 4" opacity=".55"/><text x="${W-R}" y="${Y(10)-6}" text-anchor="end">objetivo de demora 10%</text>`;
+  g+=`<text x="${(L+W-R)/2}" y="${H-4}" text-anchor="middle">% de órdenes con reclamo</text><text transform="translate(12 ${(T+H-B)/2}) rotate(-90)" text-anchor="middle">% con demora</text>`;
+  if(!st.some(s=>s.delay!=null)){$('#scatter').innerHTML='<p class="empty">Esta semana viene del reporte semestral de Rappi, que no trae el % de demora ni de reclamos por semana. El mapa está disponible en las semanas con reporte semanal.</p>';$('#blegend').innerHTML='';return}
+  const vis=st.filter(s=>s.delay!=null).sort((a,b)=>(b.orders||0)-(a.orders||0));
+  g+=vis.map(s=>{const b=BR[s.bi];const col=S.b<0?b.color:(s.delay<=10?'var(--olive)':s.avail<87?'var(--amber)':'var(--tomato)');
+    const t=`<b>${esc(s.short)}</b>${S.b<0?' · '+esc(b.label):''}<br>Demora ${fmtP(s.delay)} · Reclamos ${fmtP(s.claimPct,2)}<br>Órdenes ≈${fmtN(s.orders)} · Disponibilidad ${fmtP(s.avail,1)}`;
+    return `<circle cx="${X(s.claimPct||0)}" cy="${Y(s.delay||0)}" r="${rr(s.orders)}" fill="${col}" fill-opacity="${S.store&&S.store!==s.name?.15:.75}" data-n="${esc(s.name)}" data-tip="${esc(t)}" tabindex="0" aria-label="${esc(s.short)}"/>`}).join('');
+  $('#scatter').innerHTML=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Demora vs reclamos por tienda">${g}</svg>`;
+  $$('#scatter circle').forEach(c=>{c.onclick=()=>setStore(c.dataset.n);c.onkeydown=e=>{if(e.key==='Enter')setStore(c.dataset.n)}});
+  $('#blegend').innerHTML=S.b<0?BR.map(b=>`<button data-i="${b.i}" aria-pressed="${!S.hidden.has(b.i)}"><i style="background:${b.color}"></i>${esc(b.label)}</button>`).join('')+`<span class="note">Toca una marca para ocultarla o mostrarla.</span>`
+    :`<span class="brandcol"><i style="background:var(--tomato)"></i>Fuera del objetivo de demora</span><span class="brandcol"><i style="background:var(--amber)"></i>Además, disponibilidad &lt; 87%</span><span class="brandcol"><i style="background:var(--olive)"></i>Dentro del objetivo</span>`;
+  $$('#blegend button').forEach(b=>b.onclick=()=>{const i=+b.dataset.i;S.hidden.has(i)?S.hidden.delete(i):S.hidden.add(i);if(S.store&&S.hidden.has(storeBy[S.store].bi))S.store='';render()});
+}
+
+function renderTable(){
+  const cols=[['short','Tienda'],...(S.b<0?[['brand','Marca']]:[]),['city','Ciudad'],['orders','Órdenes ≈'],['delay','Con demora'],['dd','Δ demora'],['nd','Demoradas'],['wait','Espera'],['claimPct','Reclamos'],['claims','N.º reclamos'],['avail','Disponibilidad'],['cancel','Cancel.']];
+  $('#thead').innerHTML=cols.map(([k,l])=>`<th data-k="${k}" ${k==='brand'||k==='city'?'style="text-align:left"':''} aria-sort="${k===S.sortK?(S.sortDir<0?'descending':'ascending'):'none'}">${l}</th>`).join('');
+  $$('#thead th').forEach(th=>th.onclick=()=>{const k=th.dataset.k;if(S.sortK===k)S.sortDir*=-1;else{S.sortK=k;S.sortDir=(k==='short'||k==='brand'||k==='city')?1:-1}renderTable()});
+  const wf=ALL.waits.filter(x=>!S.day||x.date===S.day); const wb={}; wf.forEach(w=>(wb[w.store]=wb[w.store]||[]).push(w));
+  const PSB=Wk>0?WEEKS[Wk-1].storeBy:{};
+  const rows=scopeStores().map(s=>({...s,dd:PSB[s.name]&&PSB[s.name].delay!=null?s.delay-PSB[s.name].delay:null,city:cityOf(s.name),brand:BR[s.bi].label,nd:(wb[s.name]||[]).length,wait:(wb[s.name]||[]).length?avg(wb[s.name].map(x=>x.wait)):null}));
+  rows.sort((a,b)=>{const x=a[S.sortK],y=b[S.sortK];if(typeof x==='string')return S.sortDir*x.localeCompare(y);return S.sortDir*((x??-1)-(y??-1))});
+  const maxD=Math.max(...rows.map(s=>s.delay),1);
+  $('#tbl tbody').innerHTML=rows.map(s=>`<tr data-n="${esc(s.name)}" class="${s.name===S.store?'sel':''}" tabindex="0">
+    <td>${S.b<0?`<span class="brandcol"><i style="background:${BR[s.bi].color}"></i>${esc(s.short)}</span>`:esc(s.short)}</td>${S.b<0?`<td style="text-align:left" class="muted">${esc(s.brand)}</td>`:''}<td style="text-align:left" class="muted">${esc(s.city)}${isGuess(s.name)?' *':''}</td>
+    <td>${fmtN(s.orders)}</td>
+    <td><span class="cellbar"><i style="width:${s.delay==null?0:s.delay/maxD*70}px;${s.delay<=10?'background:var(--olive)':''}"></i>${fmtP(s.delay)}</span></td>
+    <td>${s.dd==null?'<span class="muted">–</span>':dHTML(s.dd,true)}</td>
+    <td>${s.nd||'–'}</td><td>${s.wait==null?'–':fmtN(s.wait,1)+' min'}</td>
+    <td><span class="pill ${s.claimPct>6?'bad':s.claimPct>4?'warn':'good'}">${fmtP(s.claimPct,2)}</span></td><td>${s.claims||'–'}</td>
+    <td><span class="pill ${s.avail<87?'bad':s.avail<100?'warn':'good'}">${fmtP(s.avail,2)}</span></td><td>${s.cancel||'–'}</td></tr>`).join('');
+  $$('#tbl tbody tr').forEach(tr=>{tr.onclick=()=>setStore(tr.dataset.n);tr.onkeydown=e=>{if(e.key==='Enter')setStore(tr.dataset.n)}});
+}
+
+const count=(arr,f)=>{const c={};arr.forEach(x=>{[].concat(f(x)).forEach(k=>{if(k)c[k]=(c[k]||0)+1})});return Object.entries(c).map(([k,v])=>({k,v})).sort((a,b)=>b.v-a.v)};
+function bars(el,items,{cls='',fmt=v=>v,empty='Sin datos',onClick,active,tip}={}){
+  if(!items.length){$(el).innerHTML=`<div class="empty">${empty}</div>`;return}
+  const m=Math.max(...items.map(i=>i.v),1);
+  $(el).innerHTML=items.map((i,idx)=>`<div class="bar ${onClick?'click':''} ${active&&active===i.key?'on':''} ${active&&active!==i.key?'dim':''}" data-idx="${idx}" ${onClick?'tabindex="0" role="button"':''} ${tip?`data-tip="${esc(tip(i))}"`:''}><span class="lbl" title="${esc(i.k)}">${esc(i.k)}</span><span class="track"><b class="${i.c||cls}" style="width:${i.v/m*100}%"></b></span><span class="n">${fmt(i.v)}</span></div>`).join('');
+  if(onClick) $$(el+' .bar').forEach(d=>{const it=items[+d.dataset.idx];d.onclick=()=>onClick(it);d.onkeydown=e=>{if(e.key==='Enter')onClick(it)}});
+}
+
+function renderDelay(){
+  const all=pick('waits'), w=all.filter(x=>!S.day||x.date===S.day);
+  const g={}; w.forEach(x=>(g[x.store]=g[x.store]||[]).push(x));
+  const list=Object.entries(g).map(([n,a])=>({n,est:avg(a.map(x=>x.est)),real:avg(a.map(x=>x.real)),c:a.length})).sort((a,b)=>b.real-a.real).slice(0,S.b<0&&!S.store?15:99);
+  const mx=Math.max(...list.map(s=>s.real),1);
+  $('#prep').innerHTML=list.length?list.map(s=>`<div class="stack click" data-n="${esc(s.n)}" tabindex="0" role="button" data-tip="${esc(`<b>${esc(shortOf(s.n))}</b><br>${s.c} órdenes demoradas<br>Estimado ${fmtN(s.est,1)} min · real ${fmtN(s.real,1)} min`)}"><span class="lbl">${esc(shortOf(s.n))}${S.b<0?` <span class="muted small">${esc(BR[storeBy[s.n].bi].label)}</span>`:''}</span>
+    <span class="track" style="width:${s.real/mx*100}%"><span class="e" style="width:${s.est/s.real*100}%"></span><span class="w" style="width:${(s.real-s.est)/s.real*100}%"></span></span>
+    <span class="n small">${fmtN(s.est)}+${fmtN(s.real-s.est)} min</span></div>`).join('')+(S.b<0&&!S.store&&Object.keys(g).length>15?`<p class="note">Se muestran las 15 tiendas con mayor tiempo real. Filtra por marca para ver todas.</p>`:''):'<div class="empty">Sin órdenes con demora con estos filtros.</div>';
+  $$('#prep .stack').forEach(d=>{d.onclick=()=>setStore(d.dataset.n);d.onkeydown=e=>{if(e.key==='Enter')setStore(d.dataset.n)}});
+  const over=w.filter(x=>x.wait>20).length;
+  $('#delayLede').textContent=w.length?`Una orden cuenta como demorada cuando el repartidor llega y el pedido no está listo. Con estos filtros, ${fmtN(over)} de ${fmtN(w.length)} órdenes demoradas tuvieron al repartidor esperando más de 20 minutos.`:'Sin órdenes con demora con estos filtros.';
+  // seg
+  const brandOnly=S.b>=0&&!S.store&&!S.city&&!BR[S.b].missing&&(BR[S.b].summary.delayDay||[]).length>0;
+  if(!brandOnly&&S.dview!=='dates') S.dview='dates';
+  const opts=[['dates','Demoradas por fecha']].concat(brandOnly?[['pct','% demora por día'],['avail','% disponibilidad']]:[]);
+  $('#dseg').innerHTML=opts.map(([k,l])=>`<button data-k="${k}" aria-pressed="${S.dview===k}">${l}</button>`).join('');
+  $$('#dseg button').forEach(b=>b.onclick=()=>{S.dview=b.dataset.k;renderDelay()});
+  const dc=$('#dchart');
+  if(S.dview==='dates'){
+    $('#dnote').textContent='Toca una fecha para filtrar todo el tablero por ese día.';
+    const per=DATES.map(d=>{const a=all.filter(x=>x.date===d);const by=BR.map(b=>a.filter(x=>x.bi===b.i).length);return {d,n:a.length,by}});
+    const top=Math.max(...per.map(p=>p.n),1);
+    dc.style.gridTemplateColumns=`repeat(${DATES.length},1fr)`;dc.style.paddingLeft='0';
+    dc.innerHTML=per.map(p=>{const t=`<b>${dlong(p.d)}</b><br>${p.n} órdenes demoradas`+(S.b<0&&!S.store?'<br>'+BR.map((b,i)=>p.by[i]?`${esc(b.label)}: ${p.by[i]}`:'').filter(Boolean).join('<br>'):'');
+      const inner=S.b<0&&!S.store?`<span class="stackb" style="height:${p.n/top*130}px">${BR.map((b,i)=>p.by[i]?`<b style="height:${p.by[i]/p.n*100}%;background:${b.color}"></b>`:'').join('')}</span>`:`<b style="height:${p.n/top*130}px"></b>`;
+      return `<button class="col ${S.day&&S.day!==p.d?'dim':''}" data-d="${p.d}" data-tip="${esc(t)}" aria-pressed="${S.day===p.d}"><em>${p.n}</em>${inner}<span>${WD[dayOf(p.d).getDay()]}<br>${+p.d.slice(8)}</span></button>`}).join('');
+    $$('#dchart .col').forEach(c=>c.onclick=()=>{S.day=S.day===c.dataset.d?'':c.dataset.d;render()});
+  } else {
+    const b=BR[S.b], isP=S.dview==='pct', vals=isP?b.summary.delayDay:b.summary.availDay;
+    $('#dnote').textContent=isP?'Porcentaje de la marca por día de la semana, según Rappi. Línea punteada: objetivo 10%.':'Disponibilidad de la marca por día de la semana, según Rappi. Línea punteada: objetivo 87%.';
+    const lo=isP?0:Math.min(80,Math.floor(Math.min(...vals)/5)*5), hi=isP?Math.max(40,Math.ceil(Math.max(...vals)/5)*5):100, tg=isP?10:87;
+    const h=v=>(v-lo)/(hi-lo)*130;
+    dc.style.gridTemplateColumns='repeat(7,1fr)';dc.style.paddingLeft='34px';
+    dc.innerHTML=vals.map((v,i)=>`<div class="col" data-tip="${esc(`<b>${WDL[i]}</b><br>${fmtP(v,2)}`)}"><em>${fmtP(v,0)}</em><b style="height:${Math.max(h(v),2)}px;background:${isP?(v<=tg?'var(--olive)':'var(--tomato)'):(v>=tg?'var(--olive)':'var(--tomato)')}"></b><span>${WDL[i]}</span></div>`).join('')+
+      `<div class="tl" data-l="${tg}%" style="bottom:${36+h(tg)}px"></div>`;
+  }
+  const bins=[['0–5 min',0,5],['5–10 min',5,10],['10–15 min',10,15],['15–20 min',15,20],['20–30 min',20,30],['Más de 30 min',30,1e9]];
+  bars('#waitDist',bins.map(([k,a,b])=>({k,v:w.filter(x=>x.wait>=a&&x.wait<b).length,c:a>=15?'t':a>=10?'a':''})),{fmt:v=>fmtN(v),empty:'Sin órdenes con demora.',tip:i=>`<b>${i.k}</b><br>${i.v} órdenes (${w.length?fmtP(i.v/w.length*100,0):'–'})`});
+}
+
+function claimsBase(){return pick('claims').filter(c=>!S.day||c.date===S.day)}
+function renderClaims(){
+  const base=claimsBase();
+  const fMot=c=>!S.motive||c.motive===S.motive, fDet=c=>!S.detail||c.detail===S.detail, fPro=c=>!S.product||c.products.includes(S.product);
+  const cl=base.filter(c=>fMot(c)&&fDet(c)&&fPro(c));
+  bars('#details',count(base.filter(c=>fMot(c)&&fPro(c)),c=>c.detail).map(i=>({...i,key:i.k})),{cls:'t',empty:'Sin reclamos.',onClick:i=>toggle('detail',i.k),active:S.detail,tip:i=>`<b>${esc(i.k)}</b><br>${i.v} órdenes · toca para filtrar`});
+  bars('#prods',count(base.filter(c=>fMot(c)&&fDet(c)),c=>c.products).slice(0,10).map(i=>({...i,key:i.k})),{empty:'Sin productos reclamados.',onClick:i=>toggle('product',i.k),active:S.product,tip:i=>`<b>${esc(i.k)}</b><br>${i.v} órdenes con reclamo · toca para filtrar`});
+  bars('#motives',count(base.filter(c=>fDet(c)&&fPro(c)),c=>c.motive).map(i=>({...i,key:i.k})),{cls:'a',empty:'Sin reclamos.',onClick:i=>toggle('motive',i.k),active:S.motive});
+  $('#compRest').textContent=money(sum(cl.map(c=>c.compRest))); $('#compRappi').textContent=money(sum(cl.map(c=>c.compRappi)));
+  const top=count(base,c=>c.detail)[0], temp=base.filter(c=>c.detail==='Temperatura incorrecta').length;
+  $('#claimsLede').textContent=base.length?`${base.length} órdenes con reclamo${S.day?' el '+dlong(S.day):''}. El motivo más frecuente: ${top.k.toLowerCase()} (${top.v}).${temp?` ${temp} ${temp===1?'llegó fría':'llegaron frías'}.`:''} Toca cualquier barra para filtrar los comentarios.`:'Sin reclamos con estos filtros.';
+  const q=S.q.toLowerCase();
+  const shown=cl.filter(c=>!q||(c.comment+' '+c.products.join(' ')+' '+c.detail+' '+shortOf(c.store)).toLowerCase().includes(q)).sort((a,b)=>b.date.localeCompare(a.date));
+  $('#clTitle').textContent=`Lo que dijeron los clientes (${shown.length})`;
+  $('#claimList').innerHTML=shown.length?shown.map(c=>`<div class="claim"><q>${esc(c.comment||'Sin comentario')}</q>
+    <span class="m">${dlabel(c.date)} · ${S.store?'':esc(shortOf(c.store))+(S.b<0?' ('+esc(BR[c.bi].label)+')':'')+' · '}${esc(c.detail)}${c.products.length?' · '+esc(c.products.join(', ')):''}</span>
+    <span class="c">${c.compRest?`<span class="bad">Rest. ${money(c.compRest)}</span>`:''}${c.compRest&&c.compRappi?' · ':''}${c.compRappi?`Rappi ${money(c.compRappi)}`:''}</span></div>`).join(''):'<div class="empty">No hay reclamos con estos filtros.</div>';
+}
+
+function renderAvail(){
+  const ev=pick('downtime').filter(e=>!S.day||e.date===S.day).sort((a,b)=>b.date.localeCompare(a.date)||b.mins-a.mins);
+  const dd=ALL.downtime.map(e=>e.date).sort();
+  const cov=scopeBrands().some(b=>b.downCovered);
+  $('#availLede').textContent=S.day?`Tiempo fuera de línea en horario de atención el ${dlong(S.day)}.`:!cov?'Rappi solo entrega las desconexiones de los últimos 15 días de cada descarga, así que para esta semana no hay datos de disponibilidad.':`Tiempo fuera de línea en horario de atención durante la semana (${dshort(DATES[0])} – ${dshort(DATES[6])}).`;
+  const agg={};ev.forEach(e=>agg[e.store]=(agg[e.store]||0)+e.mins);
+  bars('#downStores',Object.entries(agg).map(([n,v])=>({k:shortOf(n)+(S.b<0?' · '+BR[storeBy[n]?.bi??0].label:''),n,v,c:v>600?'t':v>120?'a':''})).sort((a,b)=>b.v-a.v),
+    {fmt:hrs,empty:'Sin desconexiones con estos filtros.',onClick:i=>setStore(i.n),tip:i=>`<b>${esc(i.k)}</b><br>${hrs(i.v)} fuera de línea · toca para filtrar`});
+  $('#events').innerHTML=ev.length?ev.map(e=>`<div class="ev click" data-n="${esc(e.store)}" data-d="${e.date}" tabindex="0" role="button"><span class="muted">${dlabel(e.date)}</span><span>${S.store?'':esc(shortOf(e.store))+' '}<span class="muted">${e.start}–${e.end}</span></span><span class="${e.mins>=180?'bad':''}" style="font-weight:600">${hrs(e.mins)}</span></div>`).join(''):'<div class="empty">Sin eventos de desconexión.</div>';
+  $$('#events .ev').forEach(d=>d.onclick=()=>{S.store=d.dataset.n;resetSub();render()});
+  const cc=pick('cancellations').filter(c=>!S.day||c.date===S.day);
+  $('#canc').innerHTML=cc.length?cc.map(c=>`<div class="ev"><span class="muted">${dlabel(c.date)}</span><span>${S.store?'':esc(shortOf(c.store))+' · '}${esc(c.reason)}${c.product?` <span class="muted">(${esc(c.product)})</span>`:''}</span><span></span></div>`).join(''):'<div class="empty">Sin cancelaciones.</div>';
+}
+
+
+// ---------- histórico ----------
+const HM={late:{l:'Órdenes demoradas',lb:true,f:v=>fmtN(v),cnt:1},delay:{l:'% con demora',lb:true,f:v=>fmtP(v,1)},claimsN:{l:'Reclamos (n.º)',lb:true,f:v=>fmtN(v),cnt:1},claims:{l:'% con reclamo',lb:true,f:v=>fmtP(v,2)},avail:{l:'% disponibilidad',lb:false,f:v=>fmtP(v,1)},comp:{l:'Compensaciones del restaurante',lb:true,f:v=>money(v),cnt:1}};
+S.hm='late';S.hp='week';
+const lastDataDay=()=>{const w=WEEKS[WEEKS.length-1];return w?(w.brands.map(b=>b.lastDay).filter(Boolean).sort().pop()||w.dates[6]):''};
+const mEnd=m=>{const d=new Date(+m.slice(0,4),+m.slice(5,7),0);return `${m}-${String(d.getDate()).padStart(2,'0')}`};
+// Semana: una fila por semana. Mes: los conteos se suman por la fecha de cada evento (las semanas que cruzan dos meses se reparten)
+// y los porcentajes salen de las semanas con reporte semanal cuyo miércoles cae en ese mes (la mayoría de sus días).
+function periods(){
+  if(S.hp!=='month')return WEEKS.map((w,i)=>({key:w.id,label:w.label,ks:[i],pk:[i],month:null}));
+  const ms=[...new Set(WEEKS.flatMap(w=>w.dates.map(d=>d.slice(0,7))))].sort();
+  const first=WEEKS[0].id,last=lastDataDay();
+  return ms.map(m=>{const a=`${m}-01`>first?`${m}-01`:first,b=mEnd(m)<last?mEnd(m):last;
+    return {key:m,label:monthLabel(m),short:`${MES3[+m.slice(5)-1]} ${m.slice(2,4)}`,month:m,from:a,to:b,
+      ks:WEEKS.map((w,i)=>w.dates.some(d=>d.startsWith(m))?i:-1).filter(i=>i>=0),pk:WEEKS.map((w,i)=>w.dates[3].startsWith(m)?i:-1).filter(i=>i>=0)}}).filter(p=>p.from<=p.to);
+}
+// valor de un indicador en un periodo para un alcance: {bi: marca o null (todas las visibles), store, city}
+function val(p,k,sc){
+  const brandsOf=w=>w.brands.filter(b=>!b.missing&&(sc.bi!=null?b.i===sc.bi:!S.hidden.has(b.i)));
+  const inS=x=>(!sc.store||x.store===sc.store)&&(!sc.city||cityOf(x.store)===sc.city)&&(!p.month||x.date.startsWith(p.month));
+  if(HM[k].cnt){let n=0,any=false;
+    p.ks.forEach(i=>brandsOf(WEEKS[i]).forEach(b=>{
+      if(sc.store&&!b.stores.some(s=>s.name===sc.store)&&!b.waits.some(x=>x.store===sc.store))return;
+      if(sc.city&&!b.stores.some(s=>cityOf(s.name)===sc.city))return;any=true;
+      n+=k==='late'?b.waits.filter(inS).length:k==='claimsN'?b.claims.filter(inS).length:sum(b.claims.filter(inS).map(c=>c.compRest))}));
+    return any?n:null}
+  let num=0,den=0;const av=[];
+  p.pk.forEach(i=>{const W=WEEKS[i];
+    if(sc.store){const s=W.storeBy[sc.store];if(!s||s.delay==null)return;const o=s.orders||0;
+      if(k==='avail'){if(s.avail!=null)av.push(s.avail)}else if(k==='delay'){num+=s.delay*(o||1);den+=o||1}else if(o){num+=s.claims*100;den+=o}return}
+    const bs=brandsOf(W);
+    if(sc.city){bs.flatMap(b=>b.stores).filter(s=>cityOf(s.name)===sc.city&&s.delay!=null).forEach(s=>{
+      if(k==='avail'){if(s.avail!=null)av.push(s.avail)}else if(s.orders){num+=(k==='delay'?s.delay:s.claims*100/s.orders)*s.orders;den+=s.orders}});return}
+    bs.filter(b=>b.ordersEst&&b.summary.delay!=null).forEach(b=>{
+      if(k==='avail'){if(sc.bi!=null)av.push(b.summary.avail);else b.stores.forEach(s=>{if(s.avail!=null)av.push(s.avail)})}
+      else{num+=(k==='delay'?b.summary.delay:b.summary.errorPct)*b.ordersEst;den+=b.ordersEst}})});
+  if(k==='avail')return av.length?avg(av):null;
+  return den?num/den:null;
+}
+function renderHistory(){
+  $('#histSeg').innerHTML=Object.entries(HM).map(([k,v])=>`<button data-k="${k}" aria-pressed="${S.hm===k}">${v.l}</button>`).join('');
+  $$('#histSeg button').forEach(b=>b.onclick=()=>{S.hm=b.dataset.k;renderHistory()});
+  $('#histPer').innerHTML=[['week','Semana a semana'],['month','Mes a mes']].map(([k,l])=>`<button data-k="${k}" aria-pressed="${S.hp===k}">${l}</button>`).join('');
+  $$('#histPer button').forEach(b=>b.onclick=()=>{S.hp=b.dataset.k;renderHistory()});
+  const PER=periods(),NP=PER.length,mon=S.hp==='month';
+  const curP=PER.findIndex(p=>mon?WEEKS[Wk].dates[3].startsWith(p.month):p.ks.includes(Wk));
+  $('#histH').textContent=mon?'Histórico mensual':'Histórico semanal';
+  const k=S.hm,M=HM[k];
+  let series=[];
+  if(S.store){series=[{name:shortOf(S.store),col:'var(--ink)',w:3,v:PER.map(p=>val(p,k,{store:S.store}))}]}
+  else if(S.b<0) series=BR.filter(b=>!S.hidden.has(b.i)).map(b=>({name:b.label,col:b.color,w:2.5,v:PER.map(p=>val(p,k,{bi:b.i,city:S.city}))})).filter(s=>s.v.some(v=>v!=null));
+  else{const names=[...new Set(WEEKS.flatMap(w=>w.brands[S.b].stores.map(s=>s.name)))].filter(n=>!S.city||cityOf(n)===S.city);
+    series=names.map(n=>({name:shortOf(n),n,col:'var(--muted)',w:1.4,op:.55,v:PER.map(p=>val(p,k,{store:n}))}));
+    series.push({name:BR[S.b].label+(S.city?' en '+S.city:' (marca)'),col:BR[S.b].color,w:3.5,v:PER.map(p=>val(p,k,{bi:S.b,city:S.city}))});}
+  const all=series.flatMap(s=>s.v).filter(v=>v!=null);
+  const Wd=540,H=300,L=52,R=140,T=16,B=34,mx=Math.max(1,...all)*1.08,mn=k==='avail'?Math.max(0,Math.min(100,...all)-5):0;
+  const X=i=>NP===1?(L+Wd-R)/2:L+i*(Wd-L-R)/(NP-1),Y=v=>T+(1-(v-mn)/(mx-mn||1))*(H-T-B);
+  let g='';for(let f=0;f<=4;f++){const v=mn+(mx-mn)*f/4;g+=`<line class="axis" x1="${L}" x2="${Wd-R}" y1="${Y(v)}" y2="${Y(v)}"/><text x="${L-8}" y="${Y(v)+4}" text-anchor="end">${k==='comp'?'$'+fmtN(v/1e6,1)+' M':M.cnt?fmtN(v):fmtN(v,0)+'%'}</text>`}
+  if(k==='delay'&&mn<=10)g+=`<line x1="${L}" x2="${Wd-R}" y1="${Y(10)}" y2="${Y(10)}" stroke="var(--ink)" stroke-dasharray="4 3" opacity=".5"/>`;
+  const step=Math.max(1,Math.ceil(NP/6));
+  const show=new Set();PER.forEach((p,i)=>{if(i%step===0)show.add(i)});show.add(NP-1);if(curP>=0)show.add(curP);
+  [...show].forEach(i=>{[NP-1,curP].forEach(f=>{if(f>=0&&i!==f&&Math.abs(i-f)<step*.8&&i!==NP-1&&i!==curP)show.delete(i)})});if(curP>=0&&curP!==NP-1&&Math.abs(curP-(NP-1))<step*.8)show.delete(NP-1);
+  PER.forEach((p,i)=>{if(!show.has(i))return;g+=`<text x="${X(i)}" y="${H-10}" text-anchor="middle" style="fill:${i===curP?'var(--ink)':''};font-weight:${i===curP?600:400}">${mon?p.short:p.label}</text>`});
+  if(curP>=0)g+=`<line x1="${X(curP)}" x2="${X(curP)}" y1="${T}" y2="${H-B}" stroke="var(--line)" stroke-width="10" opacity=".5"/>`;
+  const labels=[];const per=mon?'mes':'semana';
+  const fd=d=>k==='comp'?money(d):M.cnt?fmtN(d):fmtN(d,1)+' pp';
+  series.forEach(s=>{const pts=s.v.map((v,i)=>v==null?null:[X(i),Y(v),v,i]);
+    let seg=[];const segs=[];pts.forEach(p=>{if(p)seg.push(p);else{if(seg.length)segs.push(seg);seg=[]}});if(seg.length)segs.push(seg);
+    segs.forEach(sg=>{if(sg.length>1)g+=`<polyline fill="none" stroke="${s.col}" stroke-width="${s.w}" stroke-opacity="${s.op||1}" points="${sg.map(p=>p[0]+','+p[1]).join(' ')}"/>`});
+    pts.forEach(p=>{const pp=PER[p?p[3]:0];if(!p)return;const prev=p[3]>0?s.v[p[3]-1]:null;const t=`<b>${esc(s.name)}</b> · ${pp.label}${mon?` (${dshort(pp.from)}–${dshort(pp.to)})`:''}<br>${M.l}: ${M.f(p[2])}${prev!=null?`<br>vs ${per} anterior: ${p[2]-prev>0?'+':''}${fd(p[2]-prev)}`:''}`;
+      g+=`<circle cx="${p[0]}" cy="${p[1]}" r="${s.w>2?5:3.5}" fill="${s.col}" fill-opacity="${s.op||1}" stroke="var(--surface)" stroke-width="1.5" data-tip="${esc(t)}" ${s.n?`data-n="${esc(s.n)}" style="cursor:pointer"`:''}/>`});
+    const lastP=[...pts].reverse().find(Boolean);if(lastP&&(s.w>2||series.length<=8))labels.push({y:lastP[1],x:lastP[0],end:lastP[3]===NP-1,t:s.name,col:s.col,v:M.f(lastP[2])});});
+  const endL=labels.filter(l=>l.end),midL=labels.filter(l=>!l.end);endL.sort((a,b)=>a.y-b.y);for(let i=1;i<endL.length;i++)if(endL[i].y-endL[i-1].y<14)endL[i].y=endL[i-1].y+14;
+  midL.forEach(l=>g+=`<text x="${l.x+9}" y="${l.y-8}" style="fill:${l.col};font-weight:600">${esc(l.t)} ${l.v}</text>`);
+  endL.forEach(l=>g+=`<text x="${Wd-R+10}" y="${l.y+4}" style="fill:${l.col};font-weight:600">${esc(l.t.length>18?l.t.slice(0,17)+'…':l.t)} ${l.v}</text>`);
+  $('#histChart').innerHTML=all.length?`<svg class="ch2" viewBox="0 0 ${Wd} ${H}">${g}</svg>`:`<p class="empty">Sin datos de este indicador con estos filtros.</p>`;
+  $$('#histChart circle[data-n]').forEach(c=>c.onclick=()=>setStore(c.dataset.n));
+  const pw=WEEKS.filter(w=>w.brands.some(b=>!b.missing&&b.summary.delay!=null)).map(w=>w.label);
+  $('#histNote').textContent=(M.cnt?'':(pw.length?`Rappi solo da porcentajes en las semanas con reporte semanal (${pw.join(', ')}); el resto de semanas viene del reporte semestral, que no trae pedidos por semana. `:'Ninguna semana tiene reporte semanal, así que no hay porcentajes por semana. '))
+    +(mon?`Cada mes suma los eventos por su fecha: ${PER.map(p=>`${p.label.split(' ')[0].toLowerCase()} ${+p.from.slice(8)}–${+p.to.slice(8)}`).join(', ')}. `:'')
+    +(WEEKS.some(w=>w.brands.some(b=>b.partial))?'La última semana está incompleta. ':'');
+  // movers
+  if(Wk>0){const P=WEEKS[Wk-1].storeBy;const pctMode=scopeStores().some(s=>s.delay!=null&&P[s.name]&&P[s.name].delay!=null);
+    const mv=pctMode?scopeStores().filter(s=>P[s.name]&&P[s.name].delay!=null&&s.delay!=null&&(s.orders||0)>=30&&(P[s.name].orders||0)>=30).map(s=>({n:s.name,s:s.short,b:BR[s.bi].label,d:s.delay-P[s.name].delay,c:s.delay,p:P[s.name].delay}))
+      :scopeStores().filter(s=>P[s.name]&&(s.nDelayed+P[s.name].nDelayed)>=10).map(s=>({n:s.name,s:s.short,b:BR[s.bi].label,d:s.nDelayed-P[s.name].nDelayed,c:s.nDelayed,p:P[s.name].nDelayed}));
+    const F=v=>pctMode?fmtP(v,0):fmtN(v);
+    const li=arr=>arr.length?arr.map(m=>`<div class="mv" data-n="${esc(m.n)}" role="button" tabindex="0" data-tip="${esc(`<b>${esc(m.s)}</b> · ${esc(m.b)}<br>${F(m.p)} → ${F(m.c)}`)}"><span>${esc(m.s)}${S.b<0?` <span class="muted small">${esc(m.b)}</span>`:''}</span><span class="muted small">${F(m.p)} → ${F(m.c)}</span>${pctMode?dHTML(m.d,true):dHTML(m.d,true,'',0)}</div>`).join(''):'<div class="empty">Sin cambios relevantes.</div>';
+    const th=pctMode?2:3;
+    $('#better').innerHTML=li(mv.filter(m=>m.d<=-th).sort((a,b)=>a.d-b.d).slice(0,6));
+    $('#worse').innerHTML=li(mv.filter(m=>m.d>=th).sort((a,b)=>b.d-a.d).slice(0,6));
+    $$('#movers .mv').forEach(d=>{d.onclick=()=>setStore(d.dataset.n);d.onkeydown=e=>{if(e.key==='Enter')setStore(d.dataset.n)}});
+    $('#moversT').textContent=`Cambio en ${pctMode?'% de demora':'órdenes demoradas'} por tienda: ${prevLabel()} → ${WEEKS[Wk].label}`;$('#moversN').textContent=(pctMode?'Solo tiendas con al menos 30 pedidos estimados en ambas semanas. ':'Se compara la cantidad de órdenes demoradas (al menos 10 entre las dos semanas). ')+(weekPartial()?'La semana actual está incompleta. ':'')+'Toca una tienda para filtrar.';$('#movers').hidden=false;
+  } else $('#movers').hidden=true;
+  // tabla por periodo
+  const sc={bi:S.b>=0?S.b:null,store:S.store||null,city:S.city||null};
+  $('#histTbl thead').innerHTML=`<tr><th>${mon?'Mes':'Semana'}</th>${mon?'<th>Días</th>':''}<th>Marcas</th><th>Órdenes demoradas</th><th>Δ vs ${mon?'mes':'sem.'} ant.</th><th>% con demora</th><th>Reclamos</th><th>% con reclamo</th><th>Disponibilidad</th><th>Cancel.</th><th>Comp. restaurante</th></tr>`;
+  const rows=PER.map((p,i)=>{const r={p,i,late:val(p,'late',sc),claims:val(p,'claimsN',sc),comp:val(p,'comp',sc),delay:val(p,'delay',sc),cp:val(p,'claims',sc),avail:val(p,'avail',sc)};
+    const inS=x=>(!sc.store||x.store===sc.store)&&(!sc.city||cityOf(x.store)===sc.city)&&(!p.month||x.date.startsWith(p.month));
+    const bset=new Set();let canc=0;p.ks.forEach(i=>WEEKS[i].brands.forEach(b=>{if(b.missing||(sc.bi!=null&&b.i!==sc.bi)||(sc.bi==null&&S.hidden.has(b.i)))return;
+      if(b.stores.some(s=>(!sc.store||s.name===sc.store)&&(!sc.city||cityOf(s.name)===sc.city)))bset.add(b.i);canc+=b.cancellations.filter(inS).length}));
+    r.bs=bset.size;r.canc=canc;r.partial=p.ks.some(i=>WEEKS[i].brands.some(b=>b.partial));return r});
+  $('#histTbl tbody').innerHTML=rows.slice().reverse().map(r=>{const prev=r.i>0?rows[r.i-1]:null;return r.late==null?`<tr class="dim" style="cursor:default"><td>${r.p.label}</td><td colspan="${mon?10:9}" style="text-align:left" class="muted">Sin datos con estos filtros</td></tr>`:
+   `<tr data-k="${mon?r.p.pk[r.p.pk.length-1]??r.p.ks[r.p.ks.length-1]:r.p.ks[0]}" class="${r.i===curP?'sel':''}" tabindex="0"><td>${r.p.label}${r.partial&&!mon?' <span class="muted small">(incompleta)</span>':''}</td>${mon?`<td class="muted">${+r.p.from.slice(8)}–${+r.p.to.slice(8)}</td>`:''}<td>${sc.bi!=null?'–':r.bs+' de '+BR.length}</td><td>${fmtN(r.late)}</td><td>${prev&&prev.late!=null&&!r.partial?dHTML(r.late-prev.late,true,'',0):'–'}</td><td>${r.delay==null?'<span class="muted">–</span>':fmtP(r.delay,1)}</td><td>${fmtN(r.claims)}</td><td>${r.cp==null?'<span class="muted">–</span>':fmtP(r.cp,2)}</td><td>${r.avail==null?'<span class="muted">–</span>':fmtP(r.avail,1)}</td><td>${fmtN(r.canc)}</td><td>${money(r.comp)}</td></tr>`}).join('');
+  $$('#histTbl tbody tr[data-k]').forEach(tr=>tr.onclick=()=>setWeek(+tr.dataset.k));
+}
+
+
+function render(){
+  if(!WEEKS.length){renderEmpty();return}
+  renderControls();renderActive();renderHero();renderKpis();renderBrands();renderPeriod();renderHistory();renderCities();renderScatter();renderTable();renderDelay();renderClaims();renderAvail();
+  const bs=scopeBrands();
+  $('#foot').textContent=`Fuente: reportes de nivel de servicio del portal de Rappi (${bs.map(b=>b.label).join(', ')}), ${bs.reduce((a,b)=>a+b.stores.length,0)} tiendas, semana del ${WEEKS[Wk].long} de ${WEEKS[Wk].year}. Histórico: ${WEEKS.length} semana${WEEKS.length===1?'':'s'}, desde el ${WEEKS[0].label} ${WEEKS[0].year}.`;
+}
+// ---------- city editor ----------
+const dlg=$('#cityDlg');
+$('#editCities').onclick=()=>{
+  const allSt={};WEEKS.forEach(w=>w.brands.forEach(b=>b.stores.forEach(s=>{allSt[s.name]={s,b:BR[b.i]||b}})));
+  $('#cityRows').innerHTML=BR.map(b=>`<h3 style="margin:18px 0 6px">${esc(b.label)}</h3>`+Object.values(allSt).filter(x=>x.s.bi===b.i).map(x=>x.s).sort((x,y)=>x.short.localeCompare(y.short)).map(s=>`<div class="crow2"><span class="muted small" style="min-width:9em">${esc(s.name)}${isGuess(s.name)?' (ciudad sugerida)':''}</span>
+    <input class="nm" data-n="${esc(s.name)}" value="${esc(NAME_MAP[s.name]||'')}" placeholder="${esc(BR[s.bi].short(s.name))}" aria-label="Nombre a mostrar">
+    <select data-n="${esc(s.name)}">${CITIES.map(c=>`<option ${cityOf(s.name)===c?'selected':''}>${c}</option>`).join('')}</select></div>`).join('')).join('');
+  dlg.showModal();};
+$('#cityCancel').onclick=()=>dlg.close();
+$('#cityReset').onclick=async()=>{dlg.close();await saveCityMap({},NAME_MAP);render()};
+$('#citySave').onclick=async()=>{const m={...cityMap};$$('#cityRows select').forEach(sl=>{const n=sl.dataset.n;const d=CITY0[n]?CITY0[n].c:'Sin asignar';if(sl.value!==d||(CITY0[n]&&CITY0[n].g))m[n]=sl.value;else delete m[n]});
+  const nm={};$$('#cityRows input.nm').forEach(i=>{const v=i.value.trim();if(v)nm[i.dataset.n]=v.slice(0,60)});
+  dlg.close();await saveCityMap(m,nm);if(S.city&&!scopeStores(true).some(s=>cityOf(s.name)===S.city))S.city='';render()};
+$('#wSel').onchange=e=>setWeek(+e.target.value);
+$('#wPrev').onclick=()=>{if(Wk>0)setWeek(Wk-1)};
+$('#wNext').onclick=()=>{if(Wk<WEEKS.length-1)setWeek(Wk+1)};
+
+
+// ---------- histórico: semanas, meses y almacenamiento ----------
+const MIN_WEEK='2026-08-02';
+const BRAND_ORDER=['Olivia','Clap Burgers','Clap Burgers - Turbo','Clap Chicken','Clap Chicken - Turbo'];
+const MES3=['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+const addDays=(d,n)=>{const x=dayOf(d);x.setDate(x.getDate()+n);return `${x.getFullYear()}-${String(x.getMonth()+1).padStart(2,'0')}-${String(x.getDate()).padStart(2,'0')}`};
+function weekMeta(start,end){
+  end=end||addDays(start,7);const a=dayOf(start),b=dayOf(addDays(start,6));
+  const same=a.getMonth()===b.getMonth();
+  const label=same?`${a.getDate()}–${b.getDate()} ${MES3[a.getMonth()]}`:`${a.getDate()} ${MES3[a.getMonth()]}–${b.getDate()} ${MES3[b.getMonth()]}`;
+  const long=same?`${a.getDate()} al ${b.getDate()} de ${MES[a.getMonth()]}`:`${a.getDate()} de ${MES[a.getMonth()]} al ${b.getDate()} de ${MES[b.getMonth()]}`;
+  const th=dayOf(addDays(start,4));
+  return {id:start,end,label,long,year:b.getFullYear(),month:`${th.getFullYear()}-${String(th.getMonth()+1).padStart(2,'0')}`,dates:Array.from({length:7},(_,i)=>addDays(start,i))};
+}
+const monthLabel=m=>`${MES[+m.slice(5)-1].charAt(0).toUpperCase()+MES[+m.slice(5)-1].slice(1)} ${m.slice(0,4)}`;
+const slug=s=>String(s).normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^A-Za-z0-9]+/g,'-').replace(/^-|-$/g,'');
+const docIdOf=(start,brand)=>`${start}__${slug(brand)}`;
+const brandRank=n=>{const i=BRAND_ORDER.indexOf(n);return i<0?100:i};
+function placeholder(name){return {brand:name,missing:true,nStores:0,period:{},summary:{cancelPct:null,errorPct:null,avail:null,delay:null,cancelN:null,errorN:null,cancelBy:[],errorBy:[],availDay:[],delayDay:[]},stores:[],cancellations:[],downtime:[],claims:[],products:[],waits:[]}}
+
+let REPORTS=[];let PERIODS=[];let NAME_MAP={};let PER_PENDING=[];            // documentos tal como llegan del almacenamiento
+let LOCAL=[];              // reportes de esta sesión cuando no hay almacenamiento
+let DB=null, USER=null, CAN_WRITE=null, CAN_DELETE=false, LOADED=false;
+
+function rebuild(){
+  const list=[...REPORTS,...LOCAL];
+  const byKey={};list.forEach(r=>{byKey[docIdOf(r.week,r.brand)]=r});
+  const reps=Object.values(byKey).filter(r=>r.week>=MIN_WEEK);
+  const names=[...new Set(reps.map(r=>r.brand))].sort((a,b)=>brandRank(a)-brandRank(b)||a.localeCompare(b));
+  const weeks=[...new Set(reps.map(r=>r.week))].sort();
+  const curId=WEEKS[Wk]?.id;
+  WEEKS=weeks.map(id=>{const rs=reps.filter(r=>r.week===id);const meta=weekMeta(id,rs[0]?.end);
+    return {...meta,brands:names.map(n=>{const r=rs.find(x=>x.brand===n);return r?JSON.parse(JSON.stringify(r.report)):placeholder(n)})}});
+  WEEKS.forEach(prepWeek);
+  buildCities();
+  if(S.b>=names.length)S.b=-1;
+  if(!WEEKS.length){renderEmpty();return}
+  const k=Math.max(0,WEEKS.findIndex(w=>w.id===curId));
+  loadWeek(curId&&WEEKS.some(w=>w.id===curId)?k:WEEKS.length-1);
+  if(S.store&&!storeBy[S.store])S.store='';
+  if(S.day&&!DATES.includes(S.day))S.day='';
+  $('#emptyState').hidden=true;$('#main').hidden=false;$('#controls').hidden=false;
+  render();
+}
+function renderEmpty(){
+  $('#main').hidden=true;$('#controls').hidden=true;$('#emptyState').hidden=false;
+  $('#emptyTitle').textContent=LOADED?'Todavía no hay reportes cargados.':'Cargando el histórico…';
+  $('#emptyText').textContent=LOADED?(CAN_WRITE===false?'Cuando alguien con permiso de edición cargue los reportes de Rappi, aparecerán aquí.':'Carga los archivos de nivel de servicio que descargas del portal de partners de Rappi, uno por marca. El tablero arma el histórico semana a semana y mes a mes.'):'';
+  $('#emptyBtn').hidden=!LOADED||CAN_WRITE===false;
+  syncNote();
+}
+function syncNote(){
+  const n=new Set([...REPORTS,...LOCAL].map(r=>r.week).filter(w=>w>=MIN_WEEK)).size, last=[...REPORTS,...LOCAL].map(r=>r.uploadedAt||'').sort().pop();
+  const when=last?new Date(last).toLocaleDateString('es-CO',{day:'numeric',month:'short',year:'numeric'}):'';
+  $('#syncNote').textContent=!LOADED?'Cargando…':DB?`${n} semana${n===1?'':'s'} en el histórico${when?' · última carga '+when:''}`:'Sin conexión al histórico: lo que cargues se verá solo en esta sesión';
+  $('#upBtn').hidden=CAN_WRITE===false;$('#editCities').hidden=CAN_WRITE===false;
+}
+
+// ---------- carga de reportes ----------
+let PENDING=[];
+const upDlg=()=>$('#upDlg');
+function openUpload(){PENDING=[];PER_PENDING=[];$('#upMsg').textContent='';renderPending();renderLoaded();upDlg().showModal()}
+async function addFiles(files){
+  const arr=[...files].filter(f=>/\.xlsx?$/i.test(f.name));
+  if(!arr.length){$('#upMsg').textContent='Elige archivos de Excel (.xlsx) descargados del portal de partners de Rappi.';return}
+  $('#upMsg').textContent='Leyendo archivos…';
+  if(typeof XLSX==='undefined'){$('#upMsg').textContent='No se pudo cargar el lector de Excel. Revisa la conexión a internet y vuelve a abrir el tablero.';return}
+  for(const f of arr){
+    try{const r0=await RP.readFile(f);if((dayOf(r0.end)-dayOf(r0.start))/864e5>8){PER_PENDING=PER_PENDING.filter(x=>x.id!==perId(r0));PER_PENDING.push({id:perId(r0),body:perBody(r0)})}for(const r of RP.split(r0))PENDING.push({file:f.name,r,id:docIdOf(r.start,r.brand),multi:!!r.derived})}
+    catch(e){PENDING.push({file:f.name,err:e.message||'No se pudo leer el archivo.'})}
+  }
+  $('#upMsg').textContent='';renderPending();
+}
+function pendingStatus(p,i){
+  if(p.err)return ['bad',p.err];
+  if(PENDING.findIndex(x=>x.id===p.id)!==i)return ['muted','Duplicado en esta carga: se omite'];
+  if(p.r.start<MIN_WEEK)return ['muted','Antes del 2 de agosto: fuera del histórico'];
+  const ex=[...REPORTS,...LOCAL].find(x=>docIdOf(x.week,x.brand)===p.id);
+  if(p.multi&&ex&&!ex.derived)return ['muted','Ya hay reporte semanal: se conserva'];
+  if(ex)return ['warn',`Ya existe: reemplaza el cargado el ${new Date(ex.uploadedAt).toLocaleDateString('es-CO',{day:'numeric',month:'short'})}`];
+  return ['good','Nuevo'];
+}
+function renderPending(){
+  const ok=PENDING.filter((p,i)=>!p.err&&PENDING.findIndex(x=>x.id===p.id)===i&&pendingStatus(p,i)[0]!=='muted');
+  $('#upList').innerHTML=PENDING.length?`<table class="uptbl"><thead><tr><th>Archivo</th><th>Marca</th><th>Semana</th><th>Tiendas</th><th>Estado</th></tr></thead><tbody>${PENDING.map((p,i)=>{const[c,t]=pendingStatus(p,i);const m=p.r?weekMeta(p.r.start,p.r.end):null;
+    return `<tr><td class="fn" title="${esc(p.file)}">${esc(p.file)}</td><td>${p.r?esc(p.r.brand.replace(/ - /g,' ')):'–'}</td><td>${m?m.label+' '+m.year:'–'}</td><td>${p.r?p.r.stores.length:'–'}</td><td><span class="st ${c}">${esc(t)}</span></td></tr>`}).join('')}</tbody></table>`:'';
+  $('#upSave').disabled=!ok.length;$('#upSave').textContent=ok.length?`Guardar ${ok.length} reporte${ok.length>1?'s':''}`:'Guardar';
+}
+function bodyFor(p){
+  const r=p.r,report={derived:!!r.derived,partial:!!r.partial,lastDay:r.lastDay||null,downCovered:r.downCovered!==false,brand:r.brand,nStores:r.nStores,period:r.period,summary:r.summary,stores:r.stores,cancellations:r.cancellations,downtime:r.downtime,claims:r.claims,products:r.products,waits:r.waits};
+  let b={week:r.start,end:r.end,brand:r.brand,derived:!!r.derived,partial:!!r.partial,fileName:p.file.slice(0,180),uploadedAt:new Date().toISOString(),report};
+  if(JSON.stringify(b).length>240000){report.claims.forEach(c=>c.comment=c.comment.slice(0,120))}
+  if(JSON.stringify(b).length>250000)throw new Error('El reporte es demasiado grande para guardarlo.');
+  return b;
+}
+async function savePending(){
+  const ok=PENDING.filter((p,i)=>!p.err&&PENDING.findIndex(x=>x.id===p.id)===i&&pendingStatus(p,i)[0]!=='muted');if(!ok.length)return;
+  const btn=$('#upSave');btn.disabled=true;
+  let done=0,fail=[];
+  for(const p of ok){
+    $('#upMsg').textContent=`Guardando ${done+1} de ${ok.length}…`;
+    try{const body=bodyFor(p);
+      if(DB){if(USER){try{body.uploadedBy=await USER.id()}catch(e){}}await DB.collection('reports').doc(p.id).set(body)}
+      else{LOCAL=LOCAL.filter(x=>docIdOf(x.week,x.brand)!==p.id);LOCAL.push(body)}
+      done++}
+    catch(e){fail.push(`${p.file}: ${e.code==='quota_exceeded'?'el almacenamiento del tablero está lleno; borra semanas antiguas que no necesites':e.code==='invalid_argument'?'no tienes permiso para guardar en este tablero':e.message||e.code}`);
+      if(e.code==='invalid_argument'){CAN_WRITE=false}}
+  }
+  for(const p of PER_PENDING){try{if(DB)await DB.collection('periods').doc(p.id).set(p.body);else{PERIODS=PERIODS.filter(x=>perId(x)!==p.id);PERIODS.push(p.body)}}catch(e){}}PER_PENDING=[];
+  btn.disabled=false;
+  if(!DB)rebuild();
+  if(fail.length){$('#upMsg').innerHTML=`Se guardaron ${done}. No se pudieron guardar:<br>${fail.map(esc).join('<br>')}`;PENDING=PENDING.filter(p=>fail.some(f=>f.startsWith(p.file)));renderPending()}
+  else{upDlg().close();const wk=ok.map(p=>p.r.start).sort().pop();setTimeout(()=>{const k=WEEKS.findIndex(w=>w.id===wk);if(k>=0)setWeek(k)},400)}
+}
+function renderLoaded(){
+  const all=[...REPORTS,...LOCAL];const weeks=[...new Set(all.map(r=>r.week))].sort().reverse();
+  $('#upLoaded').innerHTML=weeks.length?weeks.map(w=>{const m=weekMeta(w);const rs=all.filter(r=>r.week===w).sort((a,b)=>brandRank(a.brand)-brandRank(b.brand));
+    return `<div class="lw"><b>${m.label} ${m.year}</b><span>${rs.map(r=>`<span class="lchip">${esc(r.brand.replace(/ - /g,' '))}${CAN_DELETE?`<button data-id="${esc(docIdOf(r.week,r.brand))}" aria-label="Borrar ${esc(r.brand)} de la semana ${m.label}">×</button>`:''}</span>`).join('')}</span></div>`}).join(''):'<p class="muted small">Aún no hay reportes.</p>';
+  $$('#upLoaded .lchip button').forEach(b=>b.onclick=async()=>{const id=b.dataset.id;if(!confirm('¿Borrar este reporte del histórico? Esta acción no se puede deshacer.'))return;
+    try{if(DB)await DB.collection('reports').doc(id).delete();else{LOCAL=LOCAL.filter(x=>docIdOf(x.week,x.brand)!==id);rebuild()}renderLoaded()}catch(e){alert('No se pudo borrar: '+(e.message||e.code))}});
+}
+function wireUpload(){
+  $('#upBtn').onclick=openUpload;$('#emptyBtn').onclick=openUpload;
+  $('#upCancel').onclick=()=>upDlg().close();$('#upSave').onclick=savePending;
+  $('#upFile').onchange=e=>{addFiles(e.target.files);e.target.value=''};
+  const dz=$('#drop');
+  dz.ondragover=e=>{e.preventDefault();dz.classList.add('over')};dz.ondragleave=()=>dz.classList.remove('over');
+  dz.ondrop=e=>{e.preventDefault();dz.classList.remove('over');addFiles(e.dataTransfer.files)};
+}
+
+// ---------- arranque ----------
+async function boot(){
+  wireUpload();renderEmpty();
+  const fallback=setTimeout(()=>{if(!LOADED){LOADED=true;renderEmpty()}},12000);
+  let db=null;try{db=await claude.use('db')}catch(e){db=null}
+  try{USER=await claude.use('user')}catch(e){USER=null}
+  if(USER){try{CAN_WRITE=await USER.can('data.write')}catch(e){CAN_WRITE=null}try{CAN_DELETE=!!(await USER.canEdit())}catch(e){CAN_DELETE=false}}
+  const emb=document.getElementById('embedData');
+  if(!db&&emb){DB=null;LOADED=true;CAN_WRITE=true;CAN_DELETE=false;clearTimeout(fallback);
+    try{REPORTS=JSON.parse(emb.textContent)}catch(e){REPORTS=[]}
+    try{const M=JSON.parse(document.getElementById('embedMeta').textContent);PERIODS=M.periods||[];cityMap=M.cities||{};NAME_MAP=M.names||{}}catch(e){}
+    rebuild();$('#syncNote').textContent=`Copia sin conexión · ${new Set(REPORTS.map(r=>r.week)).size} semanas · datos hasta el ${emb.dataset.asof}. Los reportes que cargues aquí se ven solo en esta sesión.`;$('#upBtn').hidden=false;return}
+  if(!db){DB=null;LOADED=true;CAN_WRITE=true;CAN_DELETE=true;clearTimeout(fallback);
+    try{cityMap=JSON.parse(localStorage.getItem('mf-city-map')||'{}')||{}}catch(e){}
+    renderEmpty();return}
+  DB=db;
+  DB.doc('config/cities').onSnapshot(s=>{const d=s.exists?s.data():null;cityMap=d&&d.map?{...d.map}:{};const nn=d&&d.names?{...d.names}:{};const ch=JSON.stringify(nn)!==JSON.stringify(NAME_MAP);NAME_MAP=nn;if(ch)rebuild();else if(WEEKS.length)render()},()=>{});
+  DB.collection('periods').onSnapshot(sn=>{PERIODS=sn.docs.map(d=>d.data()).filter(p=>p&&p.brand&&p.stores);if(WEEKS.length)render()},()=>{});
+  DB.collection('reports').onSnapshot(snap=>{clearTimeout(fallback);LOADED=true;REPORTS=snap.docs.map(d=>d.data()).filter(r=>r&&r.report&&r.week&&r.brand);
+    if($('#upDlg').open)renderLoaded();rebuild();syncNote()},
+    e=>{clearTimeout(fallback);LOADED=true;$('#syncNote').textContent='No se pudo leer el histórico. Recarga la página.';renderEmpty()});
+}
+async function saveCityMap(m,names){
+  cityMap=m;const nchg=names&&JSON.stringify(names)!==JSON.stringify(NAME_MAP);if(names)NAME_MAP=names;if(nchg)rebuild();
+  if(DB){try{await DB.doc('config/cities').set({map:m,names:NAME_MAP,updatedAt:new Date().toISOString()})}catch(e){alert('No se pudieron guardar los cambios: '+(e.message||e.code))}}
+  else{try{localStorage.setItem('mf-city-map',JSON.stringify(m))}catch(e){}}
+}
+
+// ---------- KPIs de periodos largos (reportes de varias semanas) ----------
+const perId=r=>`${r.start}_${r.end}__${slug(r.brand)}`;
+function perBody(r){const w=r.waits;return {start:r.start,end:r.end,brand:r.brand,uploadedAt:new Date().toISOString(),summary:r.summary,stores:r.stores,late:w.length,claimsN:r.claims.length,
+  compRest:sum(r.claims.map(c=>c.compRest)),compRappi:sum(r.claims.map(c=>c.compRappi)),est:w.length?avg(w.map(x=>x.est)):null,real:w.length?avg(w.map(x=>x.real)):null,
+  lateByStore:Object.fromEntries(r.stores.map(s=>[s.name,w.filter(x=>x.store===s.name).length]))}}
+S.per='';
+// Acumulado de todo el histórico cargado (2 ago – último día con datos). Los % son la referencia de Rappi para el semestre.
+function renderPeriod(){
+  $('#s-period').hidden=!WEEKS.length;if(!WEEKS.length)return;
+  $('#perSel').closest('label').style.display='none';
+  const first=WEEKS[0].id,last=lastDataDay(),rng=`${dshort(first)} – ${dshort(last)}`;
+  const ref=PERIODS.filter(p=>p.end>=last).sort((a,b)=>b.end.localeCompare(a.end));
+  const refOf=n=>ref.find(p=>p.brand===n);
+  const refLbl=ref.length?`${dshort(ref[0].start)} – ${dshort(ref[0].end)}`:'';
+  const storeMode=S.b>=0||!!S.city||!!S.store;
+  const okS=n=>(!S.city||cityOf(n)===S.city)&&(!S.store||n===S.store);
+  const acc={};const A=(k,bi)=>acc[k]=acc[k]||{k,bi,late:0,claims:0,comp:0,compR:0,canc:0,down:0};
+  WEEKS.forEach(w=>w.brands.forEach(b=>{if(b.missing||(S.b>=0&&b.i!==S.b)||(S.b<0&&S.hidden.has(b.i)))return;
+    const key=x=>storeMode?x.store:b.brand;
+    b.waits.filter(x=>okS(x.store)).forEach(x=>A(key(x),b.i).late++);
+    b.claims.filter(x=>okS(x.store)).forEach(x=>{const r=A(key(x),b.i);r.claims++;r.comp+=x.compRest;r.compR+=x.compRappi});
+    b.cancellations.filter(x=>okS(x.store)).forEach(x=>A(key(x),b.i).canc++);
+    if(storeMode)b.stores.filter(s=>okS(s.name)).forEach(s=>A(s.name,b.i));else A(b.brand,b.i);}));
+  const C=(v,t,hb)=>v==null?'<span class="muted">–</span>':`<span class="pill ${cls(v,t,hb)}">${fmtP(v,1)}</span>`;
+  let rows=Object.values(acc);
+  const refRow=r=>{if(!storeMode){const p=refOf(r.k);return p?{d:p.summary.delay,c:p.summary.errorPct,a:p.summary.avail}:{}}
+    const p=refOf(BR[r.bi].brand),s=p&&p.stores.find(x=>x.name===r.k);return s?{d:s.delay,c:s.claimPct,a:s.avail}:{}};
+  rows.sort((a,b)=>storeMode?b.comp-a.comp:a.bi-b.bi);
+  const name=r=>storeMode?`${esc(shortOf(r.k))}${S.b<0?` <span class="muted small">${esc(BR[r.bi].label)}</span>`:''}`:`<span class="brandcol"><i style="background:${BR[r.bi].color}"></i>${esc(BR[r.bi].label)}</span>`;
+  $('#ptbl thead').innerHTML=`<tr><th rowspan="2" style="text-align:left">${storeMode?'Tienda':'Marca'}</th><th colspan="6" style="text-align:center;border-bottom:1px solid var(--line)">Acumulado ${rng}</th><th colspan="3" style="text-align:center;border-bottom:1px solid var(--line)">% de Rappi${refLbl?' · '+refLbl:''}</th></tr>
+   <tr><th>Órdenes demoradas</th><th>Reclamos</th><th>Cancel.</th><th>Comp. restaurante</th><th>Comp. Rappi</th><th>Comp. por semana</th><th>Con demora</th><th>Reclamos</th><th>Disponib.</th></tr>`;
+  const nW=WEEKS.length-(WEEKS.some(w=>w.brands.some(b=>b.partial))?1-(()=>{const d=lastDataDay(),s=WEEKS[WEEKS.length-1].id;return (dayOf(d)-dayOf(s))/864e5+1})()/7:0);
+  const tr=r=>{const f=refRow(r);return `<tr ${storeMode?`data-n="${esc(r.k)}"`:`data-i="${r.bi}"`} tabindex="0"><td style="text-align:left">${name(r)}</td><td>${fmtN(r.late)}</td><td>${fmtN(r.claims)}</td><td>${fmtN(r.canc)}</td><td><b>${money(r.comp)}</b></td><td>${money(r.compR)}</td><td class="muted">${money(r.comp/nW)}</td><td>${C(f.d,10,false)}</td><td>${f.c==null?'<span class="muted">–</span>':fmtP(f.c,2)}</td><td>${C(f.a,87,true)}</td></tr>`};
+  const T=rows.reduce((t,r)=>({late:t.late+r.late,claims:t.claims+r.claims,canc:t.canc+r.canc,comp:t.comp+r.comp,compR:t.compR+r.compR}),{late:0,claims:0,canc:0,comp:0,compR:0});
+  $('#ptbl tbody').innerHTML=rows.length?rows.map(tr).join('')+(rows.length>1?`<tr class="tot" style="cursor:default;font-weight:600"><td style="text-align:left">Total</td><td>${fmtN(T.late)}</td><td>${fmtN(T.claims)}</td><td>${fmtN(T.canc)}</td><td>${money(T.comp)}</td><td>${money(T.compR)}</td><td class="muted">${money(T.comp/nW)}</td><td colspan="3"></td></tr>`:''):`<tr><td colspan="10" class="empty">Sin datos con estos filtros.</td></tr>`;
+  $$('#ptbl tbody tr[data-i]').forEach(tr=>tr.onclick=()=>setBrand(+tr.dataset.i));
+  $$('#ptbl tbody tr[data-n]').forEach(tr=>tr.onclick=()=>setStore(tr.dataset.n));
+  $('#perH').textContent=`Acumulado del histórico · ${rng}`;
+  $('#perLede').textContent=`Suma de las ${WEEKS.length} semanas del histórico, no de una sola semana. No cambia con el selector de semana; sí con los filtros de marca, ciudad y tienda.`;
+  $('#perNote').textContent=`Comp. por semana = compensación del restaurante acumulada ÷ ${fmtN(nW,1)} semanas con datos. `+(ref.length?`Los porcentajes son los que Rappi entrega para todo el reporte semestral (${refLbl}), porque Rappi no da porcentajes por semana; incluyen meses anteriores a agosto. `:'')+'Toca una fila para filtrar el tablero.';
+}
+
+
+// ---------- app: datos cifrados con la clave del equipo ----------
+const APP_K='mf-rappi-app-key';
+const b64=s=>Uint8Array.from(atob(s),c=>c.charCodeAt(0));
+const u8b64=u=>btoa(String.fromCharCode(...new Uint8Array(u)));
+async function decryptWith(key,enc){const pt=await crypto.subtle.decrypt({name:'AES-GCM',iv:b64(enc.iv)},key,b64(enc.ct));return JSON.parse(new TextDecoder().decode(pt))}
+async function keyFromPw(pw,enc){const base=await crypto.subtle.importKey('raw',new TextEncoder().encode(pw),'PBKDF2',false,['deriveKey']);
+  return crypto.subtle.deriveKey({name:'PBKDF2',salt:b64(enc.salt),iterations:enc.iter,hash:'SHA-256'},base,{name:'AES-GCM',length:256},true,['decrypt'])}
+function startWith(data,asof){
+  const a=document.createElement('script');a.type='application/json';a.id='embedData';a.dataset.asof=asof;a.textContent=JSON.stringify(data.reports);document.body.appendChild(a);
+  const m=document.createElement('script');m.type='application/json';m.id='embedMeta';m.textContent=JSON.stringify(data.meta);document.body.appendChild(m);
+  boot().then(()=>{const s=$('#syncNote');if(s)s.textContent=`${new Set(data.reports.map(r=>r.week)).size} semanas · datos hasta el ${asof}`;const u=$('#upBtn');if(u)u.hidden=true});
+}
+async function appStart(){
+  const g=document.getElementById('gate'),err=document.getElementById('gateErr');
+  let enc;try{const r=await fetch('data.enc.json',{cache:'no-cache'});enc=await r.json()}catch(e){
+    try{const c=await caches.match('data.enc.json');enc=c&&await c.json()}catch(_){}
+    if(!enc){g.hidden=false;g.style.display='flex';err.textContent='No se pudieron cargar los datos. Revisa tu conexión.';return}}
+  try{const raw=localStorage.getItem(APP_K);if(raw){const key=await crypto.subtle.importKey('raw',b64(raw),'AES-GCM',false,['decrypt']);startWith(await decryptWith(key,enc),enc.asof);return}}catch(e){try{localStorage.removeItem(APP_K)}catch(_){}}
+  g.hidden=false;g.style.display='flex';document.getElementById('gatePw').focus();
+  document.getElementById('gateForm').onsubmit=async ev=>{ev.preventDefault();err.textContent='Verificando…';
+    try{const key=await keyFromPw(document.getElementById('gatePw').value,enc);const data=await decryptWith(key,enc);
+      try{localStorage.setItem(APP_K,u8b64(await crypto.subtle.exportKey('raw',key)))}catch(_){}
+      g.hidden=true;g.style.display='none';err.textContent='';startWith(data,enc.asof)}
+    catch(e){err.textContent='Clave incorrecta.';document.getElementById('gatePw').select()}};
+}
+if('serviceWorker' in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
+
+appStart();
+
+</script>
+</body>
+</html>
